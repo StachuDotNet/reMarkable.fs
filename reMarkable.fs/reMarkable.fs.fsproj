@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+      <TargetFramework>netstandard2.1</TargetFramework>
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <WarnOn>3390;$(WarnOn)</WarnOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta0013" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0003" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0010" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\lifebook.bin" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\marker.bin" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\x220.bin" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Util\ResourceHelpers.fs" />
+    <Compile Include="Util\UnixExceptions.fs" />
+    <Compile Include="Util\BufferExtensions.fs" />
+    <Compile Include="Util\DataAvailableEventArgs.fs" />
+    <Compile Include="Util\StreamWatcher.fs" />
+    <Compile Include="Util\UnixInputDriver.fs" />
+    <Compile Include="Util\UnixFileMode.fs" />
+    <Compile Include="Util\Stream.fs" />
+    
+    <Compile Include="Device.fs" />
+    
+    <Compile Include="PhysicalButtons.fs" />
+    <Compile Include="Digitizer.fs" />
+    <Compile Include="TouchScreen.fs" />
+    <Compile Include="Display\IFrameBuffer.fs" />
+    <Compile Include="Display\HardwareFramebuffer.fs" />
+    <Compile Include="Display\Framebuffer.fs" />
+    <Compile Include="Display\EInkController.fs" />
+    <Compile Include="Display\IDisplayDriver.fs" />
+    <Compile Include="Display\RGB565.fs" />
+    <Compile Include="Display\HardwareDisplayDriver.fs" />
+    <Compile Include="Display\RM2ShimDisplayDriver.fs" />
+    <Compile Include="Performance.fs" />
+    <Compile Include="Keyboard.fs" />
+    <Compile Include="PowerSupply.fs" />
+    <Compile Include="Wireless.fs" />
+    <Compile Include="Devices.fs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <WarnOn>3390;$(WarnOn)</WarnOn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\reMarkable.fs.UI\reMarkable.fs.UI.fsproj" />
+        <ProjectReference Include="..\reMarkable.fs\reMarkable.fs.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="Lumberjack.fs" />
+        <Compile Include="MainPage.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="Properties\launchSettings.json" />
+        <None Include="runtimeconfig.template.json" />
+    </ItemGroup>
+</Project>

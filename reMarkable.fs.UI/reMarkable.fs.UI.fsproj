@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <WarnOn>3390;$(WarnOn)</WarnOn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta0013" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0003" />
+        <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0010" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="Resources\atlas16.png" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Resources\atlas32.png" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Resources\atlas64.png" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="Resources\segoeui.ttf" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Resources\segoeuib.ttf" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Resources\segoeuil.ttf" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Resources\segoeuisl.ttf" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="Resources\seguisb.ttf" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="Utils\PointExtensions.fs" />
+        <Compile Include="Utils\RectangleExtensions.fs" />
+        <Compile Include="Fonts.fs" />
+        <Compile Include="SegoeMdl2Glyphs.fs" />
+        <Compile Include="StylusPressEventArgs.fs" />
+        <Compile Include="IWindow.fs" />
+        <Compile Include="Control.fs" />
+        <Compile Include="Page.fs" />
+        <Compile Include="Panel.fs" />
+        <Compile Include="Window.fs" />
+        <Compile Include="Button.fs" />
+        <Compile Include="IconLabel.fs" />
+        <Compile Include="Label.fs" />
+        <Compile Include="PictureBox.fs" />
+        <Compile Include="HorizontalStackPanel.fs" />
+        <Compile Include="VerticalStackPanel.fs" />
+        <Compile Include="WiFiIndicator.fs" />
+        <Compile Include="BatteryIndicatorHelpers.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\reMarkable.fs\reMarkable.fs.fsproj" />
+    </ItemGroup>
+</Project>
