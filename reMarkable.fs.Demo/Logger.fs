@@ -1,6 +1,5 @@
-﻿
-/// Provides a source for creating loggers
-module reMarkable.fs.Lumberjack
+﻿/// Provides a source for creating loggers
+module reMarkable.fs.Logger
 
 open NLog
 open NLog.Config

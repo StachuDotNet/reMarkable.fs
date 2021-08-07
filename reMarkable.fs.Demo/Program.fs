@@ -6,7 +6,7 @@ open reMarkable.fs
 open reMarkable.fs.Display
 open Sandbox.Pages
 
-let logger = Lumberjack.CreateLogger("reMarkable.fs.Demo")
+let logger = Logger.CreateLogger("reMarkable.fs.Demo")
 
 let displayDriver = Devices.Display
 
@@ -54,15 +54,20 @@ let main _argv =
 
     //logger.Info("Memory: {0}", PassiveDevices.Performance.TotalMemory);
     
-    let mutable prevState: StylusState option = None
-    let mutable time = DateTime.Now
     
+    
+    
+    let mutable prevState: StylusState option = None
+    let mutable lastUpdated = DateTime.Now
     Devices.Digitizer.StylusUpdate.Add(fun state ->
         match prevState with
         | Some prev ->
-            if prev.Pressure < 10 && state.Pressure >= 10 && time <= DateTime.Now then
-                logger.Info("stylus updated")
-                time <- DateTime.Now + TimeSpan.FromMilliseconds(50.0)
+            let wasNotPressingBefore = prev.Pressure < 10
+            let isPressingNow = state.Pressure >= 10
+            
+            if wasNotPressingBefore && isPressingNow && lastUpdated <= DateTime.Now then
+                printfn "Stylus updated: %A" state
+                lastUpdated <- DateTime.Now + TimeSpan.FromMilliseconds(50.0)
         | None -> ()
             
         prevState <- Some state
