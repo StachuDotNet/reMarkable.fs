@@ -1173,7 +1173,7 @@ type SymbolAtlasPage(imagePage: byte[], glyphSize: int) =
     
     member val GlyphSize = glyphSize with get, set
 
-type SymbolAtlas<'T when 'T : enum<int>>(pages: SymbolAtlasPage[]) = // todO: int?
+type SymbolAtlas<'T when 'T : enum<int>>(pages: SymbolAtlasPage[]) =
     let pages: Dictionary<int, Image<Rgba32>> =
         let a = fun (pg: SymbolAtlasPage) -> pg.GlyphSize
         let b = fun (pg: SymbolAtlasPage) -> pg.Page
@@ -1196,7 +1196,7 @@ type SymbolAtlas<'T when 'T : enum<int>>(pages: SymbolAtlasPage[]) = // todO: in
                 |> ignore
 
             page.Clone(cropper)
-        | _ -> raise <| ArgumentOutOfRangeException(nameof(size), size, "idk")
+        | _ -> raise <| ArgumentOutOfRangeException(nameof(size), size, "not a known size")
 
 
 let private assembly = Assembly.GetExecutingAssembly()

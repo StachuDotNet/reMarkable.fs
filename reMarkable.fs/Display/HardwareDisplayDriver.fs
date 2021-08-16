@@ -2,7 +2,6 @@
 
 // /// Provides methods for interacting with the hardware display installed in the device
 // public sealed class HardwareDisplayDriver : IDisposable, IDisplayDriver
-// {
 //     /// The device handle through which IOCTL commands can be issued
 //     private readonly StreamStuff.SafeUnixHandle _handle;
 //
@@ -12,25 +11,19 @@
 //     /// The device handle location
 //     public string DevicePath { get; }
 //
-//     /// <inheritdoc />
 //     public IFramebuffer Framebuffer { get; }
 //
-//     /// <inheritdoc />
 //     public int VirtualHeight { get; }
 //
-//     /// <inheritdoc />
 //     public int VirtualWidth { get; }
 //
-//     /// <inheritdoc />
 //     public int VisibleHeight { get; }
 //
-//     /// <inheritdoc />
 //     public int VisibleWidth { get; }
 //
 //     /// Creates a new <see cref="HardwareDisplayDriver" />
 //     /// <param name="devicePath">The device handle location</param>
 //     public HardwareDisplayDriver(string devicePath)
-//     {
 //         DevicePath = devicePath;
 //
 //         _handle = StreamStuff.Open(DevicePath, 0, UnixFileMode.WriteOnly);
@@ -61,18 +54,14 @@
 //         // vinfo.BitsPerPixel = sizeof(short) * 8;
 //
 //         PutVarScreenInfo(vinfo);
-//     }
 //
 //     /// <inheritdoc />
 //     public void Dispose()
-//     {
 //         _handle?.Dispose();
 //         ((HardwareFramebuffer)Framebuffer)?.Dispose();
-//     }
 //
 //     /// <inheritdoc />
 //     public void Draw(DrawArgs args)
-//     {
 //         //Rectangle refreshArea = default,
 //         //WaveformMode waveformMode = WaveformMode.Auto
 //         //DisplayTemp displayTemp = DisplayTemp.Papyrus,
@@ -82,10 +71,8 @@
 //     
 //         // todo:
 //         // if (FSharpOption<Rectangle>.get_IsNone(args.RefreshArea))
-//         // {
 //         //     refreshArea.Location = destPoint;
 //         //     refreshArea.Size = srcArea.Size;
-//         // }
 //     
 //         var waveformMode = WaveformMode.Auto;// todo: respect incoming.
 //         var displayTemp = DisplayTemp.RemarkableDraw; // todo: respect incoming
@@ -93,44 +80,36 @@
 //     
 //         // todo: deal with empty refreshArea
 //         Refresh(args.RefreshArea.Value, waveformMode, displayTemp, updateMode);
-//     }
 //
 //     // /// Reads fixed device information from the display
 //     // /// <returns>A populated <see cref="FbFixedScreenInfo" /></returns>
 //     // public FbFixedScreenInfo GetFixedScreenInfo()
-//     // {
 //     //     var screenInfo = new FbFixedScreenInfo();
 //     //     
 //     //     if (DisplayIoctl.Ioctl(_handle, IoctlDisplayCommand.GetFixedScreenInfo, ref screenInfo) == -1)
 //     //         throw new UnixException();
 //     //     
 //     //     return screenInfo;
-//     // }
 //
 //     /// Reads variable device information from the display
 //     /// <returns>A populated <see cref="FbVarScreenInfo" /></returns>
 //     public FbVarScreenInfo GetVariableScreenInfo()
-//     {
 //         var variableInfo = new FbVarScreenInfo();
 //         
 //         if (DisplayIoctl.Ioctl2(_handle, IoctlDisplayCommand.GetVariableScreenInfo, ref variableInfo) == -1)
 //             throw new UnixException();
 //         
 //         return variableInfo;
-//     }
 //
 //     /// Writes variable device to the display
 //     /// <param name="variableInfo">A populated <see cref="FbVarScreenInfo" /></param>
 //     public void PutVarScreenInfo(FbVarScreenInfo variableInfo)
-//     {
 //         if (DisplayIoctl.Ioctl2(_handle, IoctlDisplayCommand.PutVariableScreenInfo, ref variableInfo) == -1)
 //             throw new UnixException();
-//     }
 //
-//     /// <inheritdoc />
 //     public void Refresh(Rectangle rectangle, WaveformMode mode, DisplayTemp displayTemp, UpdateMode updateMode)
 //     {
-//         Framebuffer.ConstrainRectangle(ref rectangle);
+//         let rectangle = Framebuffer.ConstrainRectangle(rectangle)
 //         var data = new FbUpdateData
 //         {
 //             UpdateRegion = new FbRect
@@ -154,5 +133,3 @@
 //             throw new UnixException();
 //     
 //         _updateMarker = (uint) retCode;
-//     }
-// }

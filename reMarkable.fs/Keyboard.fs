@@ -1,6 +1,12 @@
 namespace reMarkable.fs.Keyboard
 
-/// Defines the possible event codes an attached keyboard can raise through the KEY event
+open System
+open System.Collections.Generic
+open reMarkable.fs.PhysicalButtons
+open reMarkable.fs.UnixInput
+open reMarkable.fs.Util
+
+/// Event codes an attached keyboard can raise through the KEY event
 type KeyboardKey =
     /// "KEY_ESC" in input-event-codes.h
     | Esc = 1
@@ -491,30 +497,22 @@ type KeyboardKey =
     /// "KEY_UNKNOWN" in input-event-codes.h
     | Unknown = 240
     
-/// Defines the possible event codes an attached keyboard can consume through the LED event
-type KeyboardLed =
-    /// The number lock LE
-    | NumLock = 0
+/// Event codes an attached keyboard can consume through the LED event
+type KeyboardLed = | NumLock = 0 | CapsLock = 1 | ScrollLock = 2
 
-    /// The caps lock LED
-    | CapsLock = 1
-
-    /// The scroll lock LEDs
-    | ScrollLock = 2
-
-/// Defines the possible event types an attached keyboard can raise
+/// Event types an attached keyboard can raise
 type KeyboardEventType =
     | Syn = 0
     | Key = 1
     | Msc = 2
     | Led = 17
 
-/// Contains data related to generic key events raised by keyboard
+/// Data related to generic key events raised by keyboard
 type KeyEventArgs(key: KeyboardKey) =
-    /// he key that raised the event
+    /// The key that raised the event
     member _.Key = key
     
-/// Contains data related to repeatable key events raised by keyboards
+/// Data related to repeatable key events raised by keyboards
 /// <param name="key">The key that raised the event</param>
 /// <param name="repeat">Whether or not the raised event was a repeat event</param>
 type KeyPressEventArgs(key: KeyboardKey, repeat: bool) =
@@ -522,70 +520,50 @@ type KeyPressEventArgs(key: KeyboardKey, repeat: bool) =
 
     /// Whether or not the raised event was a software repeat or a hardware state change
     member _.Repeat = repeat
- 
-// /// Provides methods for monitoring a physical keyboard attached to the device
-// public sealed class HardwareKeyboardDriver : UnixInputDriver, IKeyboardDriver
-//     /// <inheritdoc />
-//     public event EventHandler<KeyPressEventArgs> Pressed;
-//
-//     /// <inheritdoc />
-//     public event EventHandler<KeyEventArgs> Released;
-//
-//     /// <inheritdoc />
-//     public Dictionary<KeyboardKey, ButtonState> KeyStates { get; }
-//
-//     /// Creates a new <see cref="HardwareKeyboardDriver" />
-//     /// <param name="device">The device event stream to poll for new events</param>
-//     public HardwareKeyboardDriver(string device) : base(device)
-//     {
-//         KeyStates = new Dictionary<KeyboardKey, ButtonState>();
-//     }
-//
-//     /// <inheritdoc />
-//     protected override void DataAvailable(object sender, DataAvailableEventArgs<EvEvent> e)
-//     {
-//         var data = e.Data;
-//
-//         var eventType = (KeyboardEventType)data.Type;
-//
-//         switch (eventType)
-//         {
-//             case KeyboardEventType.Syn:
-//             case KeyboardEventType.Msc:
-//             case KeyboardEventType.Led:
-//                 break;
-//             case KeyboardEventType.Key:
-//             {
-//                 var key = (KeyboardKey)data.Code;
-//                 var state = (ButtonState)data.Value;
-//
-//                 switch (state)
-//                 {
-//                     case ButtonState.Released:
-//                         Released?.Invoke(this, new KeyEventArgs(key));
-//                         break;
-//                     case ButtonState.Pressed:
-//                     case ButtonState.Repeat:
-//                         Pressed?.Invoke(this, new KeyPressEventArgs(key, state == ButtonState.Repeat));
-//                         break;
-//                     default:
-//                         throw new ArgumentOutOfRangeException(nameof(state), state, state.GetType().Name);
-//                 }
-//
-//                 break;
-//             }
-//             default:
-//                 throw new ArgumentOutOfRangeException(nameof(eventType), eventType, eventType.GetType().Name);
-//         }
-//     }
 
 /// Provides an interface through which a physical keyboard can be accessed
-type IKeyboardDriver = interface end
-    // /// Fired when a resting key is pressed
-    // event EventHandler<KeyPressEventArgs> Pressed;
-    //
-    // /// Fired when a pressed key is released
-    // event EventHandler<KeyEventArgs> Released;
-    //
-    // /// Contains a map of all instantaneous key states
-    // Dictionary<KeyboardKey, ButtonState> KeyStates { get; }
+type IKeyboardDriver =
+    /// Fired when a resting key is pressed
+    abstract member Pressed: IEvent<KeyPressEventArgs>
+    
+    /// Fired when a pressed key is released
+    abstract member Released: IEvent<KeyEventArgs>
+    
+    /// Contains a map of all instantaneous key states
+    abstract member KeyStates: Dictionary<KeyboardKey, ButtonState>
+
+ 
+/// Provides methods for monitoring a physical keyboard attached to the device
+/// <param name="device">The device event stream to poll for new events</param>
+type HardwareKeyboardDriver(device: string) =
+    inherit UnixInputDriver(device)
+    
+    let keyStates = Dictionary<KeyboardKey, ButtonState>()
+    let pressed, released = Event<KeyPressEventArgs>(), Event<KeyEventArgs>()
+    
+    interface IKeyboardDriver with
+        member _.Pressed = pressed.Publish
+        member _.Released = released.Publish
+        member _.KeyStates = keyStates
+
+    override _.DataAvailable( e: DataAvailableEventArgs<EvEvent>) =
+        let data = e.Data
+
+        let eventType: KeyboardEventType = LanguagePrimitives.EnumOfValue (int data.Type)
+
+        match eventType with
+        | KeyboardEventType.Syn
+        | KeyboardEventType.Msc
+        | KeyboardEventType.Led ->
+            ()
+        | KeyboardEventType.Key ->
+            let key: KeyboardKey = LanguagePrimitives.EnumOfValue (int data.Code)
+            let state: ButtonState = LanguagePrimitives.EnumOfValue data.Value
+
+            match state with
+            | ButtonState.Released -> released.Trigger (KeyEventArgs(key))
+            | ButtonState.Pressed ->  pressed.Trigger (KeyPressEventArgs(key, false))
+            | ButtonState.Repeat ->   pressed.Trigger (KeyPressEventArgs(key, true))
+            | _ -> raise <| ArgumentOutOfRangeException(nameof(state), state, state.GetType().Name)
+
+        | _ -> raise <| ArgumentOutOfRangeException(nameof(eventType), eventType, eventType.GetType().Name)

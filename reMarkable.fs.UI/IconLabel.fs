@@ -7,7 +7,6 @@ open reMarkable.fs.UI.SegoeMdl2Glyphs
 open reMarkable.fs.UI
 open reMarkable.fs.UI.Util
 
-// todo: default 32 iconsize
 // todo: ensure only 16, 32, or 64 (or learn how to _scale_ glyphs)
 type IconLabel<'T when 'T : enum<int>>(atlas: SymbolAtlas<'T>, iconSize: int option, defaultIcon: 'T) as this =
     inherit Control()

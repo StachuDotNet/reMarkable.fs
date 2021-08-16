@@ -29,7 +29,7 @@ type WiFiIndicator(iconSize: int option) as this =
         this.Poll()
     
     member this.Poll() =
-        let quality = Devices.Wireless.GetQuality()
+        let quality = ReMarkable.Wireless.GetQuality()
         let linkQuality = quality.Link
         let signalStrength = quality.Gain
         

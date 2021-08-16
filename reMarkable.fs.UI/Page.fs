@@ -19,5 +19,5 @@ type Page(window: IWindow, width: int, height: int, content: IPanel)  =
     member _.Window = window
 
     member this.Draw(buffer: Image<Rgb24>): unit =
-        buffer.Mutate(fun (g: IImageProcessingContext) -> g.Clear(Color.White) |> ignore)
+        buffer.Mutate(fun g -> g.Clear(Color.White) |> ignore)
         this.Content.Draw(buffer)

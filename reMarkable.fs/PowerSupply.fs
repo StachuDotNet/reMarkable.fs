@@ -1,13 +1,14 @@
 module reMarkable.fs.PowerSupply
 
+// context: https://remarkablewiki.com/tech/power
+
 open System
 open System.IO
 
 /// Converts "micro" units to their base unit
 /// <param name="value">The value offset by 10^6</param>
 /// <returns>The value multiplied by 10^(-6)</returns>
-let MicroToBaseUnit value =
-    value * Math.Pow(10.0, -6.0)
+let convertToMicro = (*) (Math.Pow(10.0, -6.0))
 
 /// Defines valid statuses for a power supply
 type PowerSupplyStatus =
@@ -98,83 +99,59 @@ type HardwarePowerSupplyMonitor(device: string) =
                 |> (/) 100f
 
         member _.GetStatus(): PowerSupplyStatus =
-            match tryReadAttr "status" with
+            let status = tryReadAttr "status"
+            match status with
             | Some "Charging\n" -> PowerSupplyStatus.Charging
             | Some "Discharging\n" -> PowerSupplyStatus.Discharging
             | Some "NotCharging\n" -> PowerSupplyStatus.NotCharging
             | Some "FULL\n" -> PowerSupplyStatus.Full
             | _ -> PowerSupplyStatus.Unknown
 
-    // /// <inheritdoc />
     // public float GetChargeFull()
-    // {
     //     if (!TryReadAttr("charge_full", out var value))
     //         return 0;
     //
     //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    // }
     //
-    // /// <inheritdoc />
     // public float GetChargeFullDesign()
-    // {
     //     if (!TryReadAttr("charge_full_design", out var value))
     //         return 0;
     //
     //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    // }
     //
-    // /// <inheritdoc />
     // public float GetChargeNow()
-    // {
     //     if (!TryReadAttr("charge_now", out var value))
     //         return 0;
     //
     //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    // }
 
-    // /// <inheritdoc />
     // public float GetCurrentNow()
-    // {
     //     if (!TryReadAttr("current_now", out var value))
     //         return 0;
     //
     //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    // }
 
-
-    // /// <inheritdoc />
     // public float GetTemperature()
-    // {
     //     if (!TryReadAttr("temp", out var value))
     //         return 0;
     //
     //     // tenths of a degree C
     //     return int.Parse(value) / 10f;
-    // }
     //
-    // /// <inheritdoc />
     // public float GetVoltageNow()
-    // {
     //     if (!TryReadAttr("voltage_now", out var value))
     //         return 0;
     //
     //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    // }
     //
-    // /// <inheritdoc />
     // public bool IsOnline()
-    // {
     //     if (!TryReadAttr("online", out var value))
     //         return false;
     //
     //     return int.Parse(value) == 1;
-    // }
     //
-    // /// <inheritdoc />
     // public bool IsPresent()
-    // {
     //     if (!TryReadAttr("present", out var value))
     //         return false;
     //
     //     return int.Parse(value) == 1;
-    // }

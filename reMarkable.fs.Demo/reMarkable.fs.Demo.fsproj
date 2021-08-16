@@ -4,12 +4,16 @@
         <TargetFramework>net5.0</TargetFramework>
         <WarnOn>3390;$(WarnOn)</WarnOn>
     </PropertyGroup>
-
+    
     <ItemGroup>
         <ProjectReference Include="..\reMarkable.fs.UI\reMarkable.fs.UI.fsproj" />
         <ProjectReference Include="..\reMarkable.fs\reMarkable.fs.fsproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="blackPepper.jpeg" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    
     <ItemGroup>
         <Compile Include="Logger.fs" />
         <Compile Include="MainPage.fs" />

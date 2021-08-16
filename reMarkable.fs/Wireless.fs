@@ -26,7 +26,7 @@ type HardwareWirelessMonitor() =
 
         let qualityLink = Int32.Parse(columns.[2].Trim('.'))
         let qualityLevel = Int32.Parse(columns.[3].Trim('.'))
-        let qualityNoise = Int32.Parse(columns.[4]);
+        let qualityNoise = Int32.Parse(columns.[4])
 
         { Link = (qualityLink |> float32) / 70f
           Gain = qualityLevel

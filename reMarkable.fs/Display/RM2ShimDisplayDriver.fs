@@ -7,9 +7,9 @@ open System.Runtime.InteropServices
 open Microsoft.FSharp.Core
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.Formats
-open reMarkable.fs.Graphics
 open reMarkable.fs
 open reMarkable.fs.UnixExceptions
+open reMarkable.fs.Util
 
 module Driver = 
     [<ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)>]
@@ -17,11 +17,16 @@ module Driver =
     extern int Close(IntPtr handle)
 
     [<DllImport("librm2fb_client.so.1.0.1", EntryPoint = "open", SetLastError = false)>]
-    [<SuppressMessage("Globalization", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Specifying a marshaling breaks rM compatibility")>]
+    [<SuppressMessage(
+        category = "Globalization",
+        checkId = "CA2101:Specify marshaling for P/Invoke string arguments",
+        Justification = "Specifying a marshaling breaks rM compatibility"
+    )>]
     extern reMarkable.fs.Util.Stream.SafeUnixHandle Open(string path, uint flags, UnixFileMode mode)
 
     [<DllImport("librm2fb_client.so.1.0.1", EntryPoint = "ioctl", SetLastError = false)>]
     extern int Ioctl(SafeHandle handle, IoctlDisplayCommand code, FbUpdateData& data)
+    
     
 /// Provides methods for interacting with the rm2fb client used on a rm2 device
 type RM2ShimDisplayDriver() =
@@ -34,8 +39,6 @@ type RM2ShimDisplayDriver() =
     
     let framebuffer = new HardwareFramebuffer(devicePath, width, height, width, height)
     
-    member _.Framebuffer = framebuffer
-    
     interface IDisposable with
         member _.Dispose() =
             handle.Dispose()
@@ -46,47 +49,52 @@ type RM2ShimDisplayDriver() =
         member _.VisibleHeight = height
         member _.VirtualWidth = width
         member _.VirtualHeight = height
+        member _.Framebuffer = framebuffer :> IFramebuffer
 
         member this.Draw(args: DrawArgs): unit =
-            let waveformMode = args.WaveformMode |> Option.defaultValue WaveformMode.Auto
-            let displayTemp = args.DisplayTemp |> Option.defaultValue DisplayTemp.Papyrus
-            let updateMode = args.UpdateMode |> Option.defaultValue UpdateMode.Partial
-            
+            // first write to framebuffer
             let func =
                 (fun fb rect point ->
                     Rgb565FramebufferEncoder(fb, rect, point)
                     :> IImageEncoder
                 )
-            framebuffer.Write(args.Image, args.SrcArea, args.DestPoint, func);
+            framebuffer.Write(args.Image, args.SrcArea, args.DestPoint, func)
         
-            let mutable refreshArea =
+            // then refresh the target area
+            let refreshArea =
                 match args.RefreshArea with
                 | None -> Rectangle(args.DestPoint, args.SrcArea.Size)
                 | Some rect -> rect
+            let waveformMode = args.WaveformMode |> Option.defaultValue WaveformMode.Auto
+            let displayTemp = args.DisplayTemp |> Option.defaultValue DisplayTemp.Papyrus
+            let updateMode = args.UpdateMode |> Option.defaultValue UpdateMode.Partial
 
-            this.Refresh(&refreshArea, waveformMode, displayTemp, updateMode);
+            (this :> IDisplayDriver).Refresh(refreshArea, waveformMode, displayTemp, updateMode)
 
-    member _.Refresh(rectangle: byref<Rectangle>, mode: WaveformMode, displayTemp: DisplayTemp, updateMode: UpdateMode): unit =
-        (framebuffer :> IFramebuffer).ConstrainRectangle(&rectangle)
-        let mutable data = FbUpdateData()
-        
-        data.UpdateRegion <-
-            let mutable rect = FbRect()
-            rect.X <- (uint)rectangle.X
-            rect.Y <- (uint)rectangle.Y
-            rect.Width <- (uint)rectangle.Width
-            rect.Height <- (uint)rectangle.Height
-            rect
-        data.WaveformMode <- mode
-        data.UpdateMode <- updateMode
-        data.UpdateMarker <- 0u
-        data.DisplayTemp <- displayTemp
-        data.Flags <- 0u
-        data.DitherMode <- 0 
-        data.QuantBit <- 0
-        //data.AltData <- null
-   
-        let retCode = Driver.Ioctl(handle :> SafeHandle, IoctlDisplayCommand.SendUpdate, &data)
-        
-        if retCode = -1 then
-            raise <| UnixException()
+        member _.Refresh(rectangle: Rectangle, mode: WaveformMode, displayTemp: DisplayTemp, updateMode: UpdateMode): unit =
+            let rectangle = (framebuffer :> IFramebuffer).ConstrainRectangle(rectangle)
+            
+            let mutable data = FbUpdateData()
+            
+            printfn "refreshing area"
+            
+            data.UpdateRegion <-
+                let mutable rect = FbRect()
+                rect.X <- (uint)rectangle.X
+                rect.Y <- (uint)rectangle.Y
+                rect.Width <- (uint)rectangle.Width
+                rect.Height <- (uint)rectangle.Height
+                rect
+            data.WaveformMode <- mode
+            data.UpdateMode <- updateMode
+            data.UpdateMarker <- 0u
+            data.DisplayTemp <- displayTemp
+            data.Flags <- 0u
+            data.DitherMode <- 0 
+            data.QuantBit <- 0
+            //data.AltData <- null
+       
+            let retCode = Driver.Ioctl(handle :> SafeHandle, IoctlDisplayCommand.SendUpdate, &data)
+            
+            if retCode = -1 then
+                raise <| UnixException(None, None)

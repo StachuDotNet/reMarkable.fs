@@ -1,13 +1,14 @@
 namespace reMarkable.fs.Display
 
 open System.Runtime.InteropServices
+open reMarkable.fs.Util.Stream
+open reMarkable.fs.Unix.Driver.Display.Framebuffer
 
 // public enum AutoUpdateMode : uint
 // {
 //     Region = 0,
 //     Automatic = 1
 // }
-    
     
 // public struct UpdateMarkerData
 // {
@@ -19,12 +20,10 @@ type UpdateMode =
     | Partial = 0u
     | Full = 1u
     
-// public enum UpdateScheme : uint
-// {
-//     Snapshot = 0,
-//     Queue = 1,
-//     QueueAndMerge = 2
-// }
+type UpdateScheme =
+    | Snapshot = 0
+    | Queue = 1
+    | QueueAndMerge = 2
 
 type WaveformMode = 
     // /// Screen goes to white (clears)
@@ -161,19 +160,16 @@ type FbUpdateData =
     val mutable AltData: FbAltBufferData
   end
 
-open reMarkable.fs.Util.Stream
-open reMarkable.fs.Unix.Driver.Display.Framebuffer
-
 /// Provides methods for interacting with the device subsystem from userspace
 module DisplayIoctl =
-  /// The IOCTL handle for <see cref="FbUpdateData" /> payloads
-  [<DllImport("libc", EntryPoint = "ioctl", SetLastError = true)>]
-  extern int Ioctl1(SafeUnixHandle handle, IoctlDisplayCommand request, FbUpdateData& data);
+    /// The IOCTL handle for <see cref="FbUpdateData" /> payloads
+    [<DllImport("libc", EntryPoint = "ioctl", SetLastError = true)>]
+    extern int Ioctl1(SafeUnixHandle handle, IoctlDisplayCommand request, FbUpdateData& data);
 
-  /// The IOCTL handle for <see cref="FbVarScreenInfo" /> payloads
-  [<DllImport("libc", EntryPoint = "ioctl", SetLastError = true)>]
-  extern int Ioctl2(SafeUnixHandle handle, IoctlDisplayCommand request, FbVarScreenInfo& data);
+    /// The IOCTL handle for <see cref="FbVarScreenInfo" /> payloads
+    [<DllImport("libc", EntryPoint = "ioctl", SetLastError = true)>]
+    extern int Ioctl2(SafeUnixHandle handle, IoctlDisplayCommand request, FbVarScreenInfo& data);
 
-  // /// The IOCTL handle for <see cref="FbFixedScreenInfo" /> payloads
-  // [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
-  // public static extern int Ioctl(SafeUnixHandle handle, IoctlDisplayCommand request, ref FbFixedScreenInfo data);
+    // /// The IOCTL handle for <see cref="FbFixedScreenInfo" /> payloads
+    // [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+    // public static extern int Ioctl(SafeUnixHandle handle, IoctlDisplayCommand request, ref FbFixedScreenInfo data);

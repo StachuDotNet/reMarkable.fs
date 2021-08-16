@@ -24,29 +24,27 @@
     <Compile Include="Util\ResourceHelpers.fs" />
     <Compile Include="Util\UnixExceptions.fs" />
     <Compile Include="Util\BufferExtensions.fs" />
-    <Compile Include="Util\DataAvailableEventArgs.fs" />
     <Compile Include="Util\StreamWatcher.fs" />
     <Compile Include="Util\UnixInputDriver.fs" />
     <Compile Include="Util\UnixFileMode.fs" />
     <Compile Include="Util\Stream.fs" />
     
-    <Compile Include="Device.fs" />
-    
     <Compile Include="PhysicalButtons.fs" />
     <Compile Include="Digitizer.fs" />
     <Compile Include="TouchScreen.fs" />
     <Compile Include="Display\IFrameBuffer.fs" />
+    <Compile Include="Display\RGB565.fs" />
     <Compile Include="Display\HardwareFramebuffer.fs" />
+    <Compile Include="Display\Rgb565FramebufferEncoder.fs" />
     <Compile Include="Display\Framebuffer.fs" />
     <Compile Include="Display\EInkController.fs" />
     <Compile Include="Display\IDisplayDriver.fs" />
-    <Compile Include="Display\RGB565.fs" />
     <Compile Include="Display\HardwareDisplayDriver.fs" />
     <Compile Include="Display\RM2ShimDisplayDriver.fs" />
     <Compile Include="Performance.fs" />
     <Compile Include="Keyboard.fs" />
     <Compile Include="PowerSupply.fs" />
     <Compile Include="Wireless.fs" />
-    <Compile Include="Devices.fs" />
+    <Compile Include="ReMarkable.fs" />
   </ItemGroup>
 </Project>

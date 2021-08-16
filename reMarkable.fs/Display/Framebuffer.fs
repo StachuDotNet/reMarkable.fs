@@ -1,19 +1,18 @@
 namespace reMarkable.fs.Unix.Driver.Display.Framebuffer
 
-// [Flags]
-// public enum FbSync : uint
-// {
-//     None = 0,
-//     HorizontalHighActive = 1,
-//     VerticalHighActive = 2,
-//     External = 4,
-//     CompositeHighActive = 8,
-//     BroadcastTimings = 16
-// }
+open System
+
+[<Flags>]
+type FbSync = // : uint
+    | None = 0u
+    | HorizontalHighActive = 1u
+    | VerticalHighActive = 2u
+    | External = 4u
+    | CompositeHighActive = 8u
+    | BroadcastTimings = 16u
 
 
 //public struct FbFixedScreenInfo
-//{
 //    // /// identification string eg "TT Builtin"
 //    // public unsafe fixed char Id[16];
 //    //
@@ -61,115 +60,112 @@ namespace reMarkable.fs.Unix.Driver.Display.Framebuffer
 //    //
 //    // /// Reserved for future compatibility
 //    // public ushort Reserved1;
-//}
 
-// [Flags]
-// public enum FbVMode : uint
-// {
-//     NonInterlaced = 0,
-//     Interlaced = 1,
-//     Double = 2,
-//     OddFieldFirst = 4,
-//     YWrap = 256,
-//     SmoothXPan = 512
-    // }
+[<Flags>]
+type FbVMode = // : uint
+    | NonInterlaced = 0u
+    | Interlaced = 1u
+    | Double = 2u
+    | OddFieldFirst = 4u
+    | YWrap = 256u
+    | SmoothXPan = 512u
     
-//        public struct FbBitfield
-//    {
-//        /// beginning of bitfield
-//        public uint Offset;
-//
-//        /// length of bitfield
-//        public uint Length;
-//
-//        /// != 0 : Most significant bit is right
-//        public uint IsMsbRight;
-//    }
+type FbBitfield =
+    struct // some of the below may need to be made mutable?
+        /// beginning of bitfield
+        val Offset: uint
+
+        /// length of bitfield
+        val Length: uint
+
+        /// != 0 : Most significant bit is right
+        val IsMsbRight: uint
+    end
 
 type FbVarScreenInfo =
     struct
-        val mutable VisibleResolutionX: uint32
-        val mutable VisibleResolutionY: uint32
+        val mutable VisibleResolutionX: uint
+        val mutable VisibleResolutionY: uint
 
-        val VirtualResolutionX: uint32
-        val VirtualResolutionY: uint32
+        val VirtualResolutionX: uint
+        val VirtualResolutionY: uint
 
-        // public uint VisibleOffsetX;
-        //
-        // public uint VisibleOffsetY;
-        //
-        // public uint BitsPerPixel;
-        //
-        // ///  0 = color, 1 = grayscale
-        // public uint IsGrayscale;
-        //
-        // public FbBitfield Red;
-        //
-        // public FbBitfield Green;
-        //
-        // public FbBitfield Blue;
-        //
-        // public FbBitfield Transparency;
-        //
-        // /// != 0 Non standard pixel format
-        // public uint NonStandardPixelFormat;
-        //
-        // /// see FB_ACTIVATE_*
-        // public uint Activate;
-        //
-        // /// height of picture in mm
-        // public uint Height;
-        //
-        // /// width of picture in mm
-        // public uint Width;
-        //
-        // /// (OBSOLETE) see fb_info.flags
-        // public uint AccelFlags;
-        //
-        // /// pixel clock in ps (picoseconds)
-        // public uint PixClock;
-        //
-        // /// time from sync to picture in pixclocks
-        // public uint LeftMargin;
-        //
-        // /// time from picture to sync in pixclocks
-        // public uint RightMargin;
-        //
-        // /// time from sync to picture in pixclocks
-        // public uint UpperMargin;
-        //
-        // /// time from picture to sync in pixclocks
-        // public uint LowerMargin;
-        //
-        // /// length of horizontal sync in pixclocks
-        // public uint HSyncLen;
-        //
-        // /// length of vertical sync in pixclocks
-        // public uint VSyncLen;
-        //
-        // /// see FB_SYNC_*
-        // public FbSync Sync;
-        //
-        // /// ee FB_VMODE_*
-        // public FbVMode VMode;
-        //
-        // /// angle we rotate counter clockwise
-        // public uint Rotate;
-        //
-        // /// colorspace for FOURCC-based modes
-        // public uint Colorspace;
-        //
-        // /// Reserved for future compatibility
-        // public uint Reserved0;
-        //
-        // /// Reserved for future compatibility
-        // public uint Reserved1;
-        //
-        // /// Reserved for future compatibility
-        // public uint Reserved2;
-        //
-        // /// Reserved for future compatibility
-        // public uint Reserved3;
+        val VisibleOffsetX: uint;
+        
+        val VisibleOffsetY: uint;
+        
+        val BitsPerPixel: uint;
+        
+        ///  0 = color, 1 = grayscale
+        val IsGrayscale: uint
+        
+        val Red: FbBitfield;
+        
+        val Green: FbBitfield;
+        
+        val Blue: FbBitfield;
+        
+        val Transparency: FbBitfield;
+        
+        /// != 0 Non standard pixel format
+        val NonStandardPixelFormat: uint
+        
+        /// see FB_ACTIVATE_*
+        val Activate: uint
+        
+        /// height of picture in mm
+        val Height: uint
+        
+        /// width of picture in mm
+        val Width: uint
+        
+        /// (OBSOLETE) see fb_info.flags
+        val AccelFlags: uint
+        
+        /// pixel clock in ps (picoseconds)
+        val PixClock: uint
+        
+        /// time from sync to picture in pixclocks
+        val LeftMargin: uint
+        
+        /// time from picture to sync in pixclocks
+        val RightMargin: uint
+        
+        /// time from sync to picture in pixclocks
+        val UpperMargin: uint
+        
+        /// time from picture to sync in pixclocks
+        val LowerMargin: uint
+        
+        /// length of horizontal sync in pixclocks
+        val HSyncLen: uint
+        
+        /// length of vertical sync in pixclocks
+        val VSyncLen: uint
+        
+        /// see FB_SYNC_*
+        val Sync: FbSync
+        
+        /// ee FB_VMODE_*
+        val VMode: FbVMode
+        
+        /// angle we rotate counter clockwise
+        val Rotate: uint
+        
+        /// colorspace for FOURCC-based modes
+        val Colorspace: uint
+        
+        /// Reserved for future compatibility
+        val Reserved0: uint
+        
+        /// Reserved for future compatibility
+        val Reserved1: uint
+        
+        /// Reserved for future compatibility
+        val Reserved2: uint
+        
+        /// Reserved for future compatibility
+        val Reserved3: uint
     end
     
    

@@ -7,19 +7,16 @@ open reMarkable.fs.PhysicalButtons
 open reMarkable.fs.UnixInput
 open reMarkable.fs.Util
 
-/// Defines the individual tools able to be represented by the device
+/// Tools able to be represented by the device
 type StylusTool =
     /// The pen tool
     | Pen
 
-    /// The eraser tool
+    /// The eraser tool - (only some styluses have this)
     | Eraser
 
-/// Defines the possible event types the digitizer can raise
-type DigitizerEventType =
-    | Syn = 0
-    | Key = 1
-    | Abs = 3
+/// Possible event types the digitizer can raise
+type DigitizerEventType = Syn = 0 | Key = 1 | Abs = 3
 
 /// Defines the possible event codes the digitizer can raise through the KEY event
 type DigitizerEventKeyCode =
@@ -92,21 +89,20 @@ type IDigitizerDriver =
     /// Fired when the stylus changes state
     abstract member StylusUpdate: IEvent<StylusState>
 
+    /// Fired when the stylus tool changes 
+    abstract member ToolChanged: IEvent<StylusTool option>
+
     /// The instantaneous state of the stylus
     abstract member State: StylusState option
+    
+    ///  The instantaneous states of the stylus tools and buttons 
+    abstract member ButtonStates: Dictionary<DigitizerEventKeyCode, ButtonState>
 
-    // ///  Fired when the stylus tool changes 
-    // event EventHandler<StylusTool> ToolChanged
-    //
-    // ///  The instantaneous states of the stylus tools and buttons 
-    // Dictionary<DigitizerEventKeyCode, ButtonState> ButtonStates { get }
+    /// The vertical resolution of the device 
+    abstract member Height: int
 
-
-    // /// The vertical resolution of the device 
-    // int Height { get }
-
-    // /// The horizontal resolution of the device 
-    // int Width { get }
+    /// The horizontal resolution of the device 
+    abstract member Width: int
 
 
 /// Provides methods for monitoring the digitizer installed in the device
@@ -123,50 +119,39 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
     let stylusUpdate = Event<StylusState>()
     let toolChanged = Event<StylusTool option>()
     
-    
-    /// Temporary distance value accumulated for event dispatch
+    /// distance value accumulated for event dispatch
     let mutable currentDistance: int = 0
 
-    /// Temporary position value accumulated for event dispatch
-    let mutable currentPosition: Point = Point.Empty
+    /// position value accumulated for event dispatch
+    let mutable currentPosition = Point.Empty
 
-    /// Temporary pressure value accumulated for event dispatch
+    /// pressure value accumulated for event dispatch
     let mutable currentPressure: int = 0
 
-    /// Temporary tilt value accumulated for event dispatch
+    /// tilt value accumulated for event dispatch
     let mutable currentTilt: Point = Point.Empty
 
-    /// Temporary tool value accumulated for event dispatch
+    /// tool value accumulated for event dispatch
     let mutable currentTool: StylusTool option = None
-    
+
     let mutable stylusState: StylusState option = None
     
-    member _.Height = height
-
-    member _.Width = width
-
-    member _.ButtonStates = buttonStates
-    
     interface IDigitizerDriver with
-        /// Fired when the stylus makes physical contact with the device
         member _.Pressed = pressed.Publish
-
-        /// Fired when the stylus breaks physical contact with the device
         member _.Released = released.Publish
-
-        /// Fired when the stylus changes state
         member _.StylusUpdate = stylusUpdate.Publish
-
-        /// The instantaneous state of the stylus
         member _.State = stylusState
-
-    member _.ToolChanged = toolChanged.Publish
+        member _.Height = height
+        member _.Width = width
+        member _.ButtonStates = buttonStates
+        member _.ToolChanged = toolChanged.Publish
 
     override this.DataAvailable(e: DataAvailableEventArgs<EvEvent>) =
         let data = e.Data
-
-        let eventType: DigitizerEventType =
-            LanguagePrimitives.EnumOfValue (data.Type |> int)
+        
+        let eventType: DigitizerEventType = LanguagePrimitives.EnumOfValue (data.Type |> int)
+            
+        // printfn "Event data: (Code: " e.Data.Type
 
         match eventType with
         | DigitizerEventType.Syn ->
@@ -204,9 +189,7 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
                     | _ ->  None
                 toolChanged.Trigger currentTool
             | DigitizerEventKeyCode.Touch ->
-                ()
-                // Stylus touch input unreliable, and data is redundant
-                // because of ABS_PRESSURE
+                () // Stylus touch input unreliable, and data is redundant because of ABS_PRESSURE (??)
             | DigitizerEventKeyCode.Stylus
             | DigitizerEventKeyCode.Stylus2 ->
                 match state with

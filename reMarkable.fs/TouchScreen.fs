@@ -5,7 +5,7 @@ open SixLabors.ImageSharp
 open reMarkable.fs.UnixInput
 open reMarkable.fs.Util
 
-/// Defines the possible states in which the touchscreen can represent a finger
+/// Possible states in which the touchscreen can represent a finger
 type FingerStatus =
     /// The finger is not in contact with the touchscreen
     | Untracked
@@ -19,7 +19,7 @@ type FingerStatus =
     /// The finger is translating across the touchscreen
     | Moving
 
-/// Defines the possible event codes the touchscreen can raise through the ABS event
+/// Possible event codes the touchscreen can raise through the ABS event
 type TouchscreenEventAbsCode =
     /// Reports the distance of a finger from the touchscreen
     | Distance = 25
@@ -51,7 +51,7 @@ type TouchscreenEventAbsCode =
     /// Reports the pressure of the finger
     | MultiTouchPressure = 58
     
-/// Defines the possible event types the touchscreen can raise
+/// Possible event types the touchscreen can raise
 type TouchscreenEventType =
     | Syn = 0
     | Key = 1
@@ -59,37 +59,37 @@ type TouchscreenEventType =
     | Absolute = 3
 
 
-/// Represents a finger's complete immediate state
+/// A finger's complete immediate state
 type FingerState =
   struct
-    /// The finger's current display position
+    /// Current display position
     val mutable DevicePosition: Point
 
-    /// The finger's current device position
+    /// Current device position
     val mutable RawPosition: Point
 
-    /// The finger's current pressure from 0-255
+    /// Pressure, from 0-255
     val mutable Pressure: int
 
-    /// The finger's previous display position
+    /// Previous display position
     val mutable PreviousDevicePosition: Point
 
-    /// The finger's previous device position
+    /// Previous device position
     val mutable PreviousRawPosition: Point
 
-    /// The finger's previous pressure from 0-255
+    /// Previous pressure, from 0-255
     val mutable PreviousPressure: int
 
-    /// The finger's current status
+    /// Current status
     val mutable Status: FingerStatus
 
-    /// The finger's tracking ID
+    /// Tracking ID (used for tracking multi-touch)
     val mutable Id: int
   end
 
 
 /// Provides a set of methods for monitoring the device's physical touchscreen
-type HardwareTouchscreenDriver(devicePath: string, width: int, height: int, maxFingers: int, shouldInvertWidth: bool) = // todo: default shouldInvertWidth to true
+type HardwareTouchscreenDriver(devicePath: string, width: int, height: int, maxFingers: int, shouldInvertWidth: bool) =
     inherit UnixInputDriver(devicePath)
 
     /// Temporary finger position accumulated for event dispatch

@@ -2,9 +2,10 @@
 
 open System
 open System.Runtime.InteropServices
+open System.Runtime.Serialization
 open System.Security.Permissions
 
-let errorMessages =
+let private errorMessages =
     [|
         "EPERM: Operation not permitted"
         "ENOENT: No such file or directory"
@@ -141,37 +142,20 @@ let errorMessages =
         "EHWPOISON: Memory page has hardware error"
     |]
 
-let getErrorMessage (err: int) = $"{errorMessages.[err - 1]} ({err})"
+let private getErrorMessage (err: int) = $"{errorMessages.[err - 1]} ({err})"
 
 
 /// Wraps a Unix exception in a class that makes the exception friendlier to read
 [<Serializable>]
-type UnixException(message: string, err: int option) =
-    inherit ExternalException(message)
+[<SecurityPermission(SecurityAction.Demand, UnmanagedCode = true)>]
+type UnixException(message: string option, err: int option) =
+    inherit ExternalException(message |> Option.defaultValue "Unknown Unix Exception")
 
-    member _.NativeErrorCode = err
+    member _.NativeErrorCode = err |> Option.defaultWith Marshal.GetLastWin32Error
 
-    [<SecurityPermission(SecurityAction.Demand, UnmanagedCode = true)>]
-    new() = UnixException("Unknown Unix Exception", None)
+    override this.GetObjectData(info: SerializationInfo, context: StreamingContext) =
+        if (info = null) then
+            raise <| ArgumentNullException(nameof info)
 
-    [<SecurityPermission(SecurityAction.Demand, UnmanagedCode = true)>]
-    new(error: int) = UnixException(getErrorMessage error, Some error)
-
-    [<SecurityPermission(SecurityAction.Demand, UnmanagedCode = true)>]
-    new(message: string) = UnixException(message, Marshal.GetLastWin32Error() |> Some)
-
-
-//    public UnixException(string message, Exception innerException) : base(message, innerException) { }
-//
-//    protected UnixException(SerializationInfo info, StreamingContext context) : base(info, context)
-//    {
-//        NativeErrorCode = info.GetInt32("NativeErrorCode");
-//    }
-//
-//    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-//    {
-//        if (info == null) throw new ArgumentNullException(nameof(info));
-//
-//        info.AddValue("NativeErrorCode", NativeErrorCode);
-//        base.GetObjectData(info, context);
-//    }
+        info.AddValue("NativeErrorCode", this.NativeErrorCode)
+        base.GetObjectData(info, context)

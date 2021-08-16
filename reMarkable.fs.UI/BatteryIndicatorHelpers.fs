@@ -33,11 +33,11 @@ let chargingBatteryIndicators: Glyphs[] =
        Glyphs.VerticalBatteryCharging10 |]
 
 let getBatteryIcon() =
-    let batteryPercentage = Devices.Battery.GetPercentage()
+    let batteryPercentage = ReMarkable.Battery.GetPercentage()
     printfn "%%: %.2f" batteryPercentage
 
     let indicators =
-        if Devices.Battery.GetStatus() <> PowerSupplyStatus.Charging then 
+        if ReMarkable.Battery.GetStatus() <> PowerSupplyStatus.Charging then 
             chargingBatteryIndicators
         else
             batteryIndicators

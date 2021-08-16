@@ -18,9 +18,18 @@ This is all a WIP and changing often.
 
 ---
 
-The [LICENSE](./License.md) is MIT.
+## Legal
 
-This project is wholly unaffiliated with reMarkable, legally - this just a hobby project :)
+The [LICENSE](./License.md) is MIT.
+This project is wholly unaffiliated with ReMarkable AS, legally.
+
+---
+
+## Getting Started
+
+TODO
+
+---
 
 The first commits of this code were a _direct_ port of another fantastic repo, [ReMarkable.NET](https://github.com/parzivail/ReMarkable.NET).
 

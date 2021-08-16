@@ -19,16 +19,18 @@ extern int Close(IntPtr handle)
 type SafeUnixHandle() as this =
     inherit SafeHandle(IntPtr(-1), true)
 
-    override _.IsInvalid = this.handle = IntPtr(-1)
+    override _.IsInvalid =
+        this.handle = IntPtr(-1)
 
     [<ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)>]
-    override _.ReleaseHandle() = Close(this.handle) <> -1
-        
+    override _.ReleaseHandle() =
+        Close(this.handle) <> -1
+
 
 [<DllImport("libc", EntryPoint = "open", SetLastError = true)>]
 [<SuppressMessage(
      "Globalization", 
      "CA2101:Specify marshaling for P/Invoke string arguments", 
-     Justification = "Specifying a marshaling breaks rM compatability"
+     Justification = "Specifying a marshaling breaks rM compatibility"
  )>]
-extern SafeUnixHandle Open(string path, uint flags, UnixFileMode mode);
+extern SafeUnixHandle Open(string path, uint flags, UnixFileMode mode)

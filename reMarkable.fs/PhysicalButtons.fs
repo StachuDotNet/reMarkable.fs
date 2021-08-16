@@ -5,7 +5,8 @@ open System.Collections.Generic
 open reMarkable.fs.UnixInput
 open reMarkable.fs.Util
 
-/// Defines the individual buttons present on the device
+/// Individual buttons present on the device
+/// Note: the rM2 only has the power button
 type PhysicalButton =
     /// The home button
     | Home = 102us
@@ -20,12 +21,10 @@ type PhysicalButton =
     | Power = 116us
 
     /// Not mapped to a physical button
-    /// <remarks>
     /// It's possible that this key code is used in place of an actual key code when a device is awoken from "light sleep"
-    /// </remarks>
     | WakeUp = 143us
 
-/// Defines the possible event types the buttons can raise
+/// Possible event types the buttons can raise
 type PhysicalButtonEventType =
     | Syn = 0us
     | Key = 1us
@@ -62,22 +61,19 @@ type PhysicalButtonDriver(devicePath: string) =
     override _.DataAvailable(e: DataAvailableEventArgs<EvEvent>) =
         let data = e.Data
 
-        let eventType: PhysicalButtonEventType =
-            LanguagePrimitives.EnumOfValue data.Type
+        let eventType: PhysicalButtonEventType = LanguagePrimitives.EnumOfValue data.Type
 
         match eventType with
-        | PhysicalButtonEventType.Syn -> ()
+        | PhysicalButtonEventType.Syn ->
+            printfn "neat - we hit a button press syn - what does this mean?"
         | PhysicalButtonEventType.Key ->
             let button: PhysicalButton = LanguagePrimitives.EnumOfValue data.Code
             let buttonState: ButtonState = LanguagePrimitives.EnumOfValue data.Value
 
             buttonStates.[button] <- ButtonState.Pressed
 
-            match (buttonState) with
-            | ButtonState.Released ->
-                released.Trigger button
-                
-            | ButtonState.Pressed ->
-                pressed.Trigger button
+            match buttonState with
+            | ButtonState.Released -> released.Trigger button
+            | ButtonState.Pressed ->  pressed.Trigger button
             | _ -> raise <| ArgumentOutOfRangeException(nameof(buttonState), buttonState, buttonState.GetType().Name)
         | _ -> raise <| ArgumentOutOfRangeException(nameof(eventType), eventType, eventType.GetType().Name)

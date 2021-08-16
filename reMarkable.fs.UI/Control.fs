@@ -68,7 +68,6 @@ type Control() =
         with get() = backgroundColor
         and set(value) = this.RedrawWithChange(fun () -> backgroundColor <- value)
 
-
     member this.Font
         with get() = font
         and set(value) = this.RedrawWithChange(fun () -> font <- value)
@@ -112,75 +111,57 @@ type Control() =
     // public event EventHandler<FingerState> FingerPress;
     // public event EventHandler<FingerState> FingerRelease;
     // public event EventHandler<FingerState> FingerMove;
-    //
+
     // public event EventHandler<StylusPressEventArgs> StylusPress;
     // public event EventHandler<StylusPressEventArgs> StylusRelease;
     // public event EventHandler<StylusState> StylusMove;
 
     // protected void DrawStringWithIcon(Image<Rgb24> buffer, char icon, float iconPadding, string s, RectangleF layoutRectangle)
-    // {
-    //     //            var iconSize = icon == 0 ? RectangleF.Empty : TextMeasurer.Measure(icon.ToString()).ToRectangle();
-    //     //            var strSize = TextMeasurer.Measure(s, rendererOptions).ToRectangle();
+    //     // TODO. (note, this was commented when you got it, Stachu!)
+    //     //var iconSize = icon == 0 ? RectangleF.Empty : TextMeasurer.Measure(icon.ToString()).ToRectangle();
+    //     //var strSize = TextMeasurer.Measure(s, rendererOptions).ToRectangle();
     //     //
-    //     //            if (s != null && !s.Contains('\n'))
-    //     //                strSize.Height = Font.Size;
+    //     //if (s != null && !s.Contains('\n'))
+    //     //    strSize.Height = Font.Size;
     //     //
-    //     //            iconSize.Width += iconPadding;
+    //     //iconSize.Width += iconPadding;
     //     //
-    //     //            iconSize.Align(layoutRectangle, RectAlign.Middle);
-    //     //            strSize.Align(layoutRectangle, RectAlign.Middle);
+    //     //iconSize.Align(layoutRectangle, RectAlign.Middle);
+    //     //strSize.Align(layoutRectangle, RectAlign.Middle);
     //     //
-    //     //            var combinedLeft = layoutRectangle.Left + (layoutRectangle.Width - (iconSize.Width + strSize.Width)) / 2;
+    //     //var combinedLeft = layoutRectangle.Left + (layoutRectangle.Width - (iconSize.Width + strSize.Width)) / 2;
     //     //
-    //     //            iconSize.Location = new PointF(combinedLeft, iconSize.Top);
-    //     //            strSize.Location = new PointF(combinedLeft + iconSize.Width, strSize.Top);
+    //     //iconSize.Location = new PointF(combinedLeft, iconSize.Top);
+    //     //strSize.Location = new PointF(combinedLeft + iconSize.Width, strSize.Top);
     //     //
-    //     //            buffer.Mutate(g =>
-    //     //            {
-    //     //                g.DrawText(textGraphicsOptions, s, Font, ForegroundColor, strSize.GetContainingIntRect().Location);
+    //     //buffer.Mutate(g =>
+    //     //{
+    //     //    g.DrawText(textGraphicsOptions, s, Font, ForegroundColor, strSize.GetContainingIntRect().Location);
     //     //
-    //     //                if (icon != 0)
-    //     //                    g.DrawText(textGraphicsOptions, icon.ToString(), Font, ForegroundColor, iconSize.GetContainingIntRect().Location);
-    //     //            });
-    //     // TODO
-    // }
+    //     //    if (icon != 0)
+    //     //        g.DrawText(textGraphicsOptions, icon.ToString(), Font, ForegroundColor, iconSize.GetContainingIntRect().Location);
+    //     //});
 
     // protected void DrawBounds(IImageProcessingContext g)
-    // {
     //     g.Draw(ForegroundColor, 1, Bounds);
-    // }
 
     // public virtual bool BoundsContains(PointF point)
-    // {
     //     return Bounds.Contains(point);
-    // }
     //
     // internal virtual void OnPress(FingerState fingerState)
-    // {
     //     FingerPress?.Invoke(this, fingerState);
-    // }
     //
     // internal virtual void OnRelease(FingerState fingerState)
-    // {
     //     FingerRelease?.Invoke(this, fingerState);
-    // }
     //
     // internal virtual void OnMove(FingerState fingerState)
-    // {
     //     FingerMove?.Invoke(this, fingerState);
-    // }
     //
     // internal virtual void OnPress(StylusState stylus, DigitizerEventKeyCode code)
-    // {
     //     StylusPress?.Invoke(this, new StylusPressEventArgs(stylus, code));
-    // }
     //
     // internal virtual void OnRelease(StylusState stylus, DigitizerEventKeyCode code)
-    // {
     //     StylusRelease?.Invoke(this, new StylusPressEventArgs(stylus, code));
-    // }
     //
     // internal virtual void OnMove(StylusState stylus)
-    // {
     //     StylusMove?.Invoke(this, stylus);
-    // }

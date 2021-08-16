@@ -1,5 +1,6 @@
 ﻿namespace reMarkable.fs.UnixInput
 
+open System
 open System.IO
 open reMarkable.fs.Util
 open System.Runtime.InteropServices
@@ -44,21 +45,9 @@ type UnixInputDriver(devicePath: string) as this =
     member _.Device = devicePath
 
     /// Called when a new event has been parsed from the event stream
-    /// <param name="sender">The stream from which the event was parsed</param>
-    /// <param name="e">The parsed event</param>
     abstract member DataAvailable: DataAvailableEventArgs<EvEvent> -> unit
     
-    //interface IDisposable with
-//
-//    /// <inheritdoc cref="Dispose()" />
-//    protected virtual void Dispose(bool disposing)
-//    {
-//        if (disposing) _eventWatcher?.Dispose();
-//    }
-//    
-//    /// <inheritdoc />
-//    public void Dispose()
-//    {
-//        Dispose(true);
-//        GC.SuppressFinalize(this);
-//    }
+    interface IDisposable with
+        member this.Dispose(): unit =
+            (eventWatcher :> IDisposable).Dispose()
+            GC.SuppressFinalize(this)
