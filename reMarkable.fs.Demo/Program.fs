@@ -9,7 +9,6 @@ open reMarkable.fs.Digitizer
 open reMarkable.fs
 open reMarkable.fs.Display
 open Sandbox.Pages
-open reMarkable.fs.Util
 
 let logger = Logger.CreateLogger("reMarkable.fs.Demo")
 
@@ -45,6 +44,8 @@ let main _argv =
 //    printfn "GetNetworkAdapters: %A" (ReMarkable.Performance.GetNetworkAdapters())
 //    printfn "GetProcessorTime: %A" (ReMarkable.Performance.GetProcessorTime())
 
+    ReMarkable.
+    
     let threadLock = new ManualResetEventSlim()
 
     let w = Window(displayDriver.VisibleWidth, displayDriver.VisibleHeight)

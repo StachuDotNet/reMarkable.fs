@@ -15,13 +15,6 @@ open reMarkable.fs.Wireless
 
 /// Possible Remarkable or emulated device types
 type Device = RM1 | RM2
-
-let startOfProgram = DateTimeOffset.Now
-let printDuration label =
-    (DateTimeOffset.Now - startOfProgram).TotalMilliseconds
-    |> printfn "%s: %f" label
-    
-
     
 /// Parses `/proc/bus/input/devices` to create a mapped dictionary of input device names and their event streams
 let currentDeviceMap: Dictionary<string, string> =
@@ -64,8 +57,6 @@ let currentDeviceMap: Dictionary<string, string> =
             | _ -> ()
 
     deviceMap
-
-printDuration "got device map"
 
 let CurrentDevice =
     if (currentDeviceMap.ContainsKey("30370000.snvs:snvs-powerkey")) then // rm2 has a power button
@@ -113,5 +104,4 @@ let Performance = HardwarePerformanceMonitor() :> IPerformanceMonitor
 // /// Holds an instance of a power supply monitor for USB power
 //let UsbPower = new HardwarePowerSupplyMonitor("/sys/class/power_supply/imx_usb_charger");
 
-
-printDuration "more stuff"
+//let Keyboard = HardwareKeyboardDriver("") :> IKeyboardDriver

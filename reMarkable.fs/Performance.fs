@@ -62,26 +62,23 @@ type CpuMeasurement(total: int64, idle: int64) =
     member _.Total = total
 
  /// Contains data related to the statistics of a network adapter
-type NetDeviceInfo(rxBytes: int64, rxPackets: int64, rxErrs: int64, rxDrop: int64, rxFifo: int64, rxFrame: int64,
-            rxCompressed: int64, rxMulticast: int64, txBytes: int64, txPackets: int64, txErrs: int64, txDrop: int64, txFifo: int64,
-            txFrame: int64, txCompressed: int64, txMulticast: int64) =
-
-    member _.RxBytes = rxBytes 
-    member _.RxCompressed = rxCompressed 
-    member _.RxDrop = rxDrop 
-    member _.RxErrs = rxErrs 
-    member _.RxFifo = rxFifo 
-    member _.RxFrame = rxFrame 
-    member _.RxMulticast = rxMulticast 
-    member _.RxPackets = rxPackets 
-    member _.TxBytes = txBytes 
-    member _.TxCompressed = txCompressed 
-    member _.TxDrop = txDrop 
-    member _.TxErrs = txErrs 
-    member _.TxFifo = txFifo 
-    member _.TxFrame = txFrame 
-    member _.TxMulticast = txMulticast 
-    member _.TxPackets = txPackets
+type NetDeviceInfo =
+    { RxBytes: int64 
+      RxCompressed: int64 
+      RxDrop: int64 
+      RxErrs: int64 
+      RxFifo: int64 
+      RxFrame: int64 
+      RxMulticast: int64 
+      RxPackets: int64 
+      TxBytes: int64 
+      TxCompressed: int64 
+      TxDrop: int64 
+      TxErrs: int64 
+      TxFifo: int64 
+      TxFrame: int64 
+      TxMulticast: int64 
+      TxPackets: int64 }
         
 /// Provides methods for calculating static and time-based performance metrics
 type PerformanceMeasurement() =
@@ -112,7 +109,7 @@ type PerformanceMeasurement() =
         dM / dT.TotalSeconds
     
 let getNetworkMeasurements(): Dictionary<string, NetDeviceInfo> =
-    let d = Dictionary<string, NetDeviceInfo>()
+    let result = Dictionary<string, NetDeviceInfo>()
 
     use sr = new StreamReader("/proc/net/dev")
     
@@ -123,63 +120,60 @@ let getNetworkMeasurements(): Dictionary<string, NetDeviceInfo> =
     while not sr.EndOfStream do
         let line = sr.ReadLine()
 
-        if (line = null) then
+        if line = null then
             ()
         else
             let columns = Regex.Split(line.Trim(), "\\s+")
 
+            let info: NetDeviceInfo =
+                { RxBytes = Int64.Parse(columns.[1]) 
+                  RxCompressed = Int64.Parse(columns.[7]) 
+                  RxDrop = Int64.Parse(columns.[4]) 
+                  RxErrs = Int64.Parse(columns.[3]) 
+                  RxFifo = Int64.Parse(columns.[5]) 
+                  RxFrame = Int64.Parse(columns.[6]) 
+                  RxMulticast = Int64.Parse(columns.[8]) 
+                  RxPackets = Int64.Parse(columns.[2]) 
+                  TxBytes = Int64.Parse(columns.[9]) 
+                  TxCompressed = Int64.Parse(columns.[15]) 
+                  TxDrop = Int64.Parse(columns.[12]) 
+                  TxErrs = Int64.Parse(columns.[11]) 
+                  TxFifo = Int64.Parse(columns.[13]) 
+                  TxFrame = Int64.Parse(columns.[14]) 
+                  TxMulticast = Int64.Parse(columns.[16]) 
+                  TxPackets = Int64.Parse(columns.[10]) }
+            
             let mutable adapterName = columns.[0]
             adapterName <- adapterName.Remove(adapterName.Length - 1)
 
-            let rxBytes = Int64.Parse(columns.[1])
-            let rxPackets = Int64.Parse(columns.[2])
-            let rxErrs = Int64.Parse(columns.[3])
-            let rxDrop = Int64.Parse(columns.[4])
-            let rxFifo = Int64.Parse(columns.[5])
-            let rxFrame = Int64.Parse(columns.[6])
-            let rxCompressed = Int64.Parse(columns.[7])
-            let rxMulticast = Int64.Parse(columns.[8])
-
-            let txBytes = Int64.Parse(columns.[9])
-            let txPackets = Int64.Parse(columns.[10])
-            let txErrs = Int64.Parse(columns.[11])
-            let txDrop = Int64.Parse(columns.[12])
-            let txFifo = Int64.Parse(columns.[13])
-            let txFrame = Int64.Parse(columns.[14])
-            let txCompressed = Int64.Parse(columns.[15])
-            let txMulticast = Int64.Parse(columns.[16])
-
-            d.Add(adapterName,
-                NetDeviceInfo(rxBytes, rxPackets, rxErrs, rxDrop, rxFifo, rxFrame, rxCompressed,
-                    rxMulticast, txBytes, txPackets, txErrs, txDrop, txFifo, txFrame, txCompressed,
-                    txMulticast))
-
-    d
+            result.Add(adapterName, info)
+    result
     
 let getCpuMeasurements(): Dictionary<string, CpuMeasurement> =
-     let d = Dictionary<string, CpuMeasurement>()
+     let result = Dictionary<string, CpuMeasurement>()
 
      use sr = new StreamReader("/proc/stat")
      
      while not sr.EndOfStream do
          let line = sr.ReadLine()
 
-         if line = null || (not (line.StartsWith("cpu"))) then
-            () // todo: return early?
-         else
+         match line with
+         | null -> ()
+         | line when line.StartsWith "cpu" -> 
              let columns = Regex.Split(line, "\\s+")
 
-             let cpuIdx = columns.[0]
+             let cpuIndex = columns.[0]
 
              let totalTime = columns |> Seq.tail |> Seq.sumBy Int64.Parse
              let idleTime = Int64.Parse(columns.[4])
 
-             d.Add(cpuIdx, CpuMeasurement(totalTime, idleTime))
+             result.Add(cpuIndex, CpuMeasurement(totalTime, idleTime))
+         | _ -> ()
 
-     d
+     result
 
 let getMemoryMeasurements():  Dictionary<string, int64> =
-     let d = Dictionary<string, int64>()
+     let result = Dictionary<string, int64>()
 
      use sr = new StreamReader("/proc/meminfo")
      
@@ -195,9 +189,9 @@ let getMemoryMeasurements():  Dictionary<string, int64> =
                  ()
              else
                  // Kilobytes
-                 d.Add(regexMatch.Groups.[1].Value, Int64.Parse(regexMatch.Groups.[2].Value) * (int64 1000))
+                 result.Add(regexMatch.Groups.[1].Value, Int64.Parse(regexMatch.Groups.[2].Value) * (int64 1000))
 
-     d
+     result
  
  /// Provides a set of methods to profile hardware performance metrics
 type HardwarePerformanceMonitor() =
