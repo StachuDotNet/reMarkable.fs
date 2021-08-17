@@ -16,7 +16,15 @@ type StylusTool =
     | Eraser
 
 /// Possible event types the digitizer can raise
-type DigitizerEventType = Syn = 0 | Key = 1 | Abs = 3
+type DigitizerEventType =
+    /// Used as markers to separate events; events may be separated in time or in space, such as with the multitouch protocol
+    | Syn = 0
+    
+    /// Used to describe state changes of keyboards, buttons, or other key-like devices
+    | Key = 1
+    
+    /// Used to describe absolute axis value changes, e.g. describing the coordinates of a touch on a touchscreen
+    | Abs = 3
 
 /// Defines the possible event codes the digitizer can raise through the KEY event
 type DigitizerEventKeyCode =
@@ -154,7 +162,7 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
         // printfn "Event data: (Code: " e.Data.Type
 
         match eventType with
-        | DigitizerEventType.Syn ->
+        | DigitizerEventType.Syn -> // "Separator" event
             stylusState <- Some <| StylusState(currentTool, currentPosition, currentPressure, currentDistance, currentTilt)
             stylusUpdate.Trigger stylusState.Value
 

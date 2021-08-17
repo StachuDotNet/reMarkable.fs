@@ -10,6 +10,7 @@ open reMarkable.fs.Display
 open reMarkable.fs.PhysicalButtons
 open reMarkable.fs.Touchscreen
 open reMarkable.fs.PowerSupply
+open reMarkable.fs.Unix.Driver.Performance
 open reMarkable.fs.Wireless
 
 /// Possible Remarkable or emulated device types
@@ -106,8 +107,8 @@ let Touchscreen =
     | Device.RM1 -> new HardwareTouchscreenDriver(currentDeviceMap.["cyttsp5_mt"], 767, 1023, 32, false)
     | Device.RM2 -> new HardwareTouchscreenDriver(currentDeviceMap.["pt_mt"], 1403, 1871, 32, false)
 
-// /// Holds an instance of a performance monitor
-//let Performance = new HardwarePerformanceMonitor();
+/// Holds an instance of a performance monitor
+let Performance = HardwarePerformanceMonitor() :> IPerformanceMonitor
 
 // /// Holds an instance of a power supply monitor for USB power
 //let UsbPower = new HardwarePowerSupplyMonitor("/sys/class/power_supply/imx_usb_charger");

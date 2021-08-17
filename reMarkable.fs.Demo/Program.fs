@@ -34,6 +34,16 @@ let main _argv =
     //Devices.PhysicalButtons.Pressed.Add(printfn "Button pressed: %A")
 
     logger.Info("hello from F#")
+    
+//    
+//    printfn "NumberOfCores: %A" ReMarkable.Performance.NumberOfCores
+//    printfn "NumberOfProcessors: %A" ReMarkable.Performance.NumberOfProcessors
+//    printfn "TotalMemory: %A" ReMarkable.Performance.TotalMemory
+//    printfn "TotalSwap: %A" ReMarkable.Performance.TotalSwap
+//    printfn "GetFreeMemory: %A" (ReMarkable.Performance.GetFreeMemory())
+//    printfn "GetFreeSwap: %A" (ReMarkable.Performance.GetFreeSwap())
+//    printfn "GetNetworkAdapters: %A" (ReMarkable.Performance.GetNetworkAdapters())
+//    printfn "GetProcessorTime: %A" (ReMarkable.Performance.GetProcessorTime())
 
     let threadLock = new ManualResetEventSlim()
 

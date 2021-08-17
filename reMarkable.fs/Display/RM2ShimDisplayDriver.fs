@@ -8,8 +8,8 @@ open Microsoft.FSharp.Core
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.Formats
 open reMarkable.fs
+open reMarkable.fs.Display.Rgb565
 open reMarkable.fs.UnixExceptions
-open reMarkable.fs.Util
 
 module Driver = 
     [<ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)>]
@@ -25,7 +25,7 @@ module Driver =
     extern reMarkable.fs.Util.Stream.SafeUnixHandle Open(string path, uint flags, UnixFileMode mode)
 
     [<DllImport("librm2fb_client.so.1.0.1", EntryPoint = "ioctl", SetLastError = false)>]
-    extern int Ioctl(SafeHandle handle, IoctlDisplayCommand code, FbUpdateData& data)
+    extern int Ioctl(SafeHandle handle, IoctlDisplayCommand code, FrameBufferUpdateData& data)
     
     
 /// Provides methods for interacting with the rm2fb client used on a rm2 device
@@ -58,7 +58,7 @@ type RM2ShimDisplayDriver() =
                     Rgb565FramebufferEncoder(fb, rect, point)
                     :> IImageEncoder
                 )
-            framebuffer.Write(args.Image, args.SrcArea, args.DestPoint, func)
+            (framebuffer :> IFramebuffer).Write(args.Image, args.SrcArea, args.DestPoint, func)
         
             // then refresh the target area
             let refreshArea =
@@ -74,12 +74,10 @@ type RM2ShimDisplayDriver() =
         member _.Refresh(rectangle: Rectangle, mode: WaveformMode, displayTemp: DisplayTemp, updateMode: UpdateMode): unit =
             let rectangle = (framebuffer :> IFramebuffer).ConstrainRectangle(rectangle)
             
-            let mutable data = FbUpdateData()
-            
-            printfn "refreshing area"
+            let mutable data = FrameBufferUpdateData()
             
             data.UpdateRegion <-
-                let mutable rect = FbRect()
+                let mutable rect = FrameBufferRectangle()
                 rect.X <- (uint)rectangle.X
                 rect.Y <- (uint)rectangle.Y
                 rect.Width <- (uint)rectangle.Width

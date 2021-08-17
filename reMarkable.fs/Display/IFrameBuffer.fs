@@ -1,6 +1,8 @@
 namespace reMarkable.fs.Display
 
 open SixLabors.ImageSharp
+open SixLabors.ImageSharp.Formats
+open SixLabors.ImageSharp.PixelFormats
 
 /// Provides an interface through which to access the device's framebuffer
 type IFramebuffer =
@@ -19,28 +21,29 @@ type IFramebuffer =
     /// <param name="color">The color to set the pixel to</param>
     abstract member SetPixel: {| X: int; Y: int; Color: Color |} -> unit
     
+    /// The virtual height of the buffer
+    abstract member VirtualHeight: int
 
-    //    /// Writes a rectangular region of pixels to the buffer
-    //    /// <typeparam name="TPixel">The pixel format</typeparam>
-    //    /// <param name="image">The pixels to write to the buffer</param>
-    //    /// <param name="srcArea">The source area of the image to draw</param>
-    //    /// <param name="destPoint">The point in the buffer where the source area will be drawn</param>
-    //    void Write<TPixel>(Image<TPixel> image, Rectangle srcArea, Point destPoint)
-    //        where TPixel : unmanaged, IPixel<TPixel>;
+    /// The virtual width of the buffer
+    abstract member VirtualWidth: int
+
+    /// The visible height of the buffer, starting from the top left
+    abstract member VisibleHeight: int
+
+    /// The visible width of the buffer, starting from the top left
+    abstract member VisibleWidth: int
+            
+    /// Finds the stream location corresponding to the pixel coordinates
+    abstract member PointToOffset: x:int * y:int -> int
+
+    /// Reads a rectangular region of pixels from the buffer
+    /// <param name="area">The region of pixels to read</param>
+    /// <returns>The pixels as an <see cref="Image{Rgb24}" /></returns>
+    abstract member Read: Rectangle -> Image<Rgb24> 
     
-    // /// The virtual height of the buffer
-    // int VirtualHeight { get; }
-
-    // /// The virtual width of the buffer
-    // int VirtualWidth { get; }
-
-    // /// The visible height of the buffer, starting from the top left
-    // int VisibleHeight { get; }
-
-    // /// The visible width of the buffer, starting from the top left
-    // int VisibleWidth { get; }
-
-    // /// Reads a rectangular region of pixels from the buffer
-    // /// <param name="area">The region of pixels to read</param>
-    // /// <returns>The pixels as an <see cref="Image{Rgb24}" /></returns>
-    // Image<Rgb24> Read(Rectangle area);
+    /// Writes a rectangular region of pixels to the buffer
+    /// <typeparam name="TPixel">The pixel format</typeparam>
+    /// <param name="image">The pixels to write to the buffer</param>
+    /// <param name="srcArea">The source area of the image to draw</param>
+    /// <param name="destPoint">The point in the buffer where the source area will be drawn</param>
+    abstract member Write: Image<'TPixel> * srcArea:Rectangle * destPoint:Point * (IFramebuffer -> Rectangle -> Point -> IImageEncoder) -> unit

@@ -5,6 +5,10 @@ open SixLabors.ImageSharp
 open reMarkable.fs.UnixInput
 open reMarkable.fs.Util
 
+// The reMarkable devices feature multi-touch technology, tracking the movements of multiple fingers.
+// ...
+// Advice: read through https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
+
 /// Possible states in which the touchscreen can represent a finger
 type FingerStatus =
     /// The finger is not in contact with the touchscreen

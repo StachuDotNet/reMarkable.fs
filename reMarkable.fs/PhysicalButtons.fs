@@ -26,7 +26,10 @@ type PhysicalButton =
 
 /// Possible event types the buttons can raise
 type PhysicalButtonEventType =
+    /// Used as markers to separate events - we can ignore events of this type, generally.
     | Syn = 0us
+    
+    /// "Actual" events
     | Key = 1us
 
 /// Defines the possible instantaneous states a button can have
@@ -64,8 +67,7 @@ type PhysicalButtonDriver(devicePath: string) =
         let eventType: PhysicalButtonEventType = LanguagePrimitives.EnumOfValue data.Type
 
         match eventType with
-        | PhysicalButtonEventType.Syn ->
-            printfn "neat - we hit a button press syn - what does this mean?"
+        | PhysicalButtonEventType.Syn -> () // "separator" event; ignore
         | PhysicalButtonEventType.Key ->
             let button: PhysicalButton = LanguagePrimitives.EnumOfValue data.Code
             let buttonState: ButtonState = LanguagePrimitives.EnumOfValue data.Value

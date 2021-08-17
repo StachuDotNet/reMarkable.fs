@@ -23,7 +23,7 @@ type StreamWatcher<'T when 'T : struct and 'T: (new: unit -> 'T)>(stream: Stream
     let buffer: byte array = Array.zeroCreate bufferSize
         
     let dataAvailable = Event<DataAvailableEventArgs<'T>>()
-
+    
     /// Process the data when the read buffer is saturated, which is when one struct has been read
     /// <param name="ar">The async stream operation result</param>
     let rec readCallback(ar: IAsyncResult): unit =
@@ -39,13 +39,11 @@ type StreamWatcher<'T when 'T : struct and 'T: (new: unit -> 'T)>(stream: Stream
         stream.BeginRead(buffer, 0, buffer.Length, AsyncCallback(readCallback), null)
         |> ignore
     
-    
     do
         if stream = null then
             failwith "Unexpected: null stream"
         
         watchNext()
-    
     
     /// Fired when new data has been parsed from the stream
     member this.DataAvailable = dataAvailable.Publish

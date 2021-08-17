@@ -5,7 +5,8 @@ open System.IO
 open reMarkable.fs.Util
 open System.Runtime.InteropServices
 
-/// Defines the interchange format for an input device event
+/// Interchange format for an input device event
+/// See https://www.kernel.org/doc/Documentation/input/event-codes.txt for details around Type and Code meanings.
 [<StructLayout(LayoutKind.Explicit, Size = 16)>]
 type EvEvent =
     struct
@@ -34,7 +35,6 @@ type EvEvent =
 /// <param name="device">The device event stream file to poll for new events</param>
 [<AbstractClass>]
 type UnixInputDriver(devicePath: string) as this =
-    
     /// The continuous stream parser
     let eventWatcher = new StreamWatcher<EvEvent>(File.OpenRead(devicePath), 16)
     
