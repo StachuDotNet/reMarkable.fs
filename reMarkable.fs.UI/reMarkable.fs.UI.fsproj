@@ -28,20 +28,9 @@
         <Compile Include="Utils\RectangleExtensions.fs" />
         <Compile Include="Fonts.fs" />
         <Compile Include="SegoeMdl2Glyphs.fs" />
-        <Compile Include="StylusPressEventArgs.fs" />
-        <Compile Include="IWindow.fs" />
-        <Compile Include="Control.fs" />
-        <Compile Include="Page.fs" />
-        <Compile Include="Panel.fs" />
-        <Compile Include="Window.fs" />
-        <Compile Include="Button.fs" />
         <Compile Include="IconLabel.fs" />
-        <Compile Include="Label.fs" />
-        <Compile Include="PictureBox.fs" />
-        <Compile Include="HorizontalStackPanel.fs" />
-        <Compile Include="VerticalStackPanel.fs" />
         <Compile Include="WiFiIndicator.fs" />
-        <Compile Include="BatteryIndicatorHelpers.fs" />
+        <Compile Include="BatteryIndicator.fs" />
     </ItemGroup>
 
     <ItemGroup>

@@ -285,12 +285,10 @@ module DisplayIoctl =
 //
 //         PutVarScreenInfo(vinfo);
 //
-//     /// <inheritdoc />
 //     public void Dispose()
 //         _handle?.Dispose();
 //         ((HardwareFramebuffer)Framebuffer)?.Dispose();
 //
-//     /// <inheritdoc />
 //     public void Draw(DrawArgs args)
 //         //Rectangle refreshArea = default,
 //         //WaveformMode waveformMode = WaveformMode.Auto

@@ -1,14 +1,8 @@
-module reMarkable.fs.PowerSupply
-
 // context: https://remarkablewiki.com/tech/power
+module reMarkable.fs.PowerSupply
 
 open System
 open System.IO
-
-/// Converts "micro" units to their base unit
-/// <param name="value">The value offset by 10^6</param>
-/// <returns>The value multiplied by 10^(-6)</returns>
-let convertToMicro = (*) (Math.Pow(10.0, -6.0))
 
 /// Defines valid statuses for a power supply
 type PowerSupplyStatus =
@@ -29,50 +23,43 @@ type PowerSupplyStatus =
 
 /// Provides an interface through which the device's power supply information can be monitored
 type IPowerSupplyMonitor =
-    // /// Gets the charge, in Wh, of the power supply the last time it was full
-    // /// <returns>The charge, in Wh</returns>
-    // float GetChargeFull();
-    //
-    // /// Gets the charge, in Wh, of the power supply when full as designed
-    // /// <returns>The charge, in Wh</returns>
-    // float GetChargeFullDesign();
-    //
-    // /// Gets the instantaneous charge, in Wh, of the power supply
-    // /// <returns>The charge, in Wh</returns>
-    // float GetChargeNow();
-    //
-    // /// <summary>
-    // ///     Gets the instantaneous current, in A, of the power supply
-    // ///
-    // /// <returns>The current, in A</returns>
-    // float GetCurrentNow();
+    /// Gets the charge, in Wh, of the power supply the last time it was full
+    abstract member GetChargeFull: unit -> float32
 
-    /// Gets the power supply percentage remaining
-    /// <returns>A float between 0 and 1, inclusive</returns>
+    /// Gets the charge, in Wh, of the power supply when full as designed
+    abstract member GetChargeFullDesign: unit -> float32
+
+    /// Gets the instantaneous charge, in Wh, of the power supply
+    abstract member GetChargeNow: unit -> float32
+
+    /// Gets the instantaneous current, in A, of the power supply
+    abstract member GetCurrentNow: unit -> float32
+
+    /// Gets the power supply percentage remaining, between 0 and 1, inclusive
     abstract member GetPercentage: unit -> float32
 
     /// Gets the status of the power supply
-    /// <returns> The instantaneous status of the power supply </returns>
     abstract member GetStatus: unit -> PowerSupplyStatus
 
-    // /// Gets the instantaneous temperature, in degrees C, of the power supply
-    // /// <returns>The temperature, in degrees C</returns>
-    // float GetTemperature();
-    //
-    // /// Gets the instantaneous voltage, in V, of the power supply
-    // /// <returns>The voltage, in V</returns>
-    // float GetVoltageNow();
-    //
-    // /// True if the power is flowing from an external source
-    // bool IsOnline();
-    //
-    // /// Determines if the power supply is present in the device
-    // /// <returns>True if the power supply is present in the device</returns>
-    // bool IsPresent();
+    /// Gets the instantaneous temperature, in degrees C, of the power supply
+    abstract member GetTemperature: unit -> float32
+    
+    /// Gets the instantaneous voltage, in V, of the power supply
+    abstract member GetVoltageNow: unit -> float32
+
+    /// True if the power is flowing from an external source
+    abstract member IsOnline: unit -> bool
+
+    /// Checks if the power supply is present in the device
+    abstract member IsPresent: unit -> bool
 
 /// Provides methods for reading power supply information from the installed hardware
 /// <param name="device">The base device path to read information from</param>
 type HardwarePowerSupplyMonitor(device: string) =
+    /// Converts "micro" units to their base unit
+    let convertToMicro (v: int) =
+        float32 v * (float32 (Math.Pow(10.0, -6.0)))
+    
     /// Attempts to read an attribute file as a file located in the directory specified by <see cref="Device" />
     /// <param name="attr">The attribute file to read</param>
     /// <param name="value">The value as read from the file</param>
@@ -107,51 +94,42 @@ type HardwarePowerSupplyMonitor(device: string) =
             | Some "FULL\n" -> PowerSupplyStatus.Full
             | _ -> PowerSupplyStatus.Unknown
 
-    // public float GetChargeFull()
-    //     if (!TryReadAttr("charge_full", out var value))
-    //         return 0;
-    //
-    //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    //
-    // public float GetChargeFullDesign()
-    //     if (!TryReadAttr("charge_full_design", out var value))
-    //         return 0;
-    //
-    //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    //
-    // public float GetChargeNow()
-    //     if (!TryReadAttr("charge_now", out var value))
-    //         return 0;
-    //
-    //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
+        member _.GetCurrentNow(): float32 =
+            match tryReadAttr "current_now" with
+            | None -> 0 |> float32
+            | Some current -> Int32.Parse current |> convertToMicro
+    
+        member _.GetChargeFull(): float32 =
+            match tryReadAttr "charge_full" with
+            | None -> 0 |> float32
+            | Some charge -> Int32.Parse charge |> convertToMicro
 
-    // public float GetCurrentNow()
-    //     if (!TryReadAttr("current_now", out var value))
-    //         return 0;
-    //
-    //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
+        member _.GetChargeFullDesign(): float32 =
+            match tryReadAttr "charge_full_design" with
+            | None -> 0 |> float32
+            | Some charge -> Int32.Parse charge |> convertToMicro
 
-    // public float GetTemperature()
-    //     if (!TryReadAttr("temp", out var value))
-    //         return 0;
-    //
-    //     // tenths of a degree C
-    //     return int.Parse(value) / 10f;
-    //
-    // public float GetVoltageNow()
-    //     if (!TryReadAttr("voltage_now", out var value))
-    //         return 0;
-    //
-    //     return DeviceUtils.MicroToBaseUnit(int.Parse(value));
-    //
-    // public bool IsOnline()
-    //     if (!TryReadAttr("online", out var value))
-    //         return false;
-    //
-    //     return int.Parse(value) == 1;
-    //
-    // public bool IsPresent()
-    //     if (!TryReadAttr("present", out var value))
-    //         return false;
-    //
-    //     return int.Parse(value) == 1;
+        member _.GetChargeNow(): float32 =
+            match tryReadAttr "charge_now" with
+            | None -> 0 |> float32
+            | Some charge -> Int32.Parse charge |> convertToMicro
+
+        member _.GetTemperature(): float32 =
+            match tryReadAttr "charge_now" with
+            | None -> 0 |> float32
+            | Some charge -> Int32.Parse charge |> float32 |> (/) (float32 10)
+
+        member _.GetVoltageNow() =
+            match tryReadAttr "voltage_now" with
+            | None -> 0 |> float32
+            | Some voltage -> Int32.Parse voltage |> convertToMicro
+            
+        member _.IsOnline() =
+            match tryReadAttr "online" with
+            | None -> false
+            | Some online -> Int32.Parse online = 1
+            
+        member _.IsPresent() =
+            match tryReadAttr "present" with
+            | None -> false
+            | Some present -> Int32.Parse present = 1

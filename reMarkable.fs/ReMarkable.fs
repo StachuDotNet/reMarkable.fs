@@ -72,19 +72,19 @@ let Display =
     | Device.RM2 -> new RM2ShimDisplayDriver() :> IDisplayDriver
 
 /// Holds an instance of a power supply monitor for the battery
-let Battery =
-    HardwarePowerSupplyMonitor("/sys/class/power_supply/bq27441-0")
+let PowerSupply =
+    HardwarePowerSupplyMonitor("/sys/class/power_supply/bq27441-0") // todo: don't hardcode :)
     :> IPowerSupplyMonitor
 
 let Wireless = HardwareWirelessMonitor()
 
-/// Holds an instance of a digitizer driver 
-let Digitizer =
-    match CurrentDevice with
-    | Device.RM1
-    | Device.RM2 ->
-        new HardwareDigitizerDriver(currentDeviceMap.["Wacom I2C Digitizer"], 20967, 15725)
-        :> IDigitizerDriver
+///// Holds an instance of a digitizer driver 
+//let Digitizer =
+//    match CurrentDevice with
+//    | Device.RM1
+//    | Device.RM2 ->
+//        new HardwareDigitizerDriver(currentDeviceMap.["Wacom I2C Digitizer"], 20967, 15725)
+//        :> IDigitizerDriver
 
 /// Holds an instance of a physical button driver
 let PhysicalButtons =
@@ -92,11 +92,11 @@ let PhysicalButtons =
     | Device.RM1 -> new PhysicalButtonDriver(currentDeviceMap.["gpio-keys"])
     | Device.RM2 -> new PhysicalButtonDriver(currentDeviceMap.["30370000.snvs:snvs-powerkey"])
 
-/// Holds an instance of a touchscreen driver
-let Touchscreen =
-    match CurrentDevice with
-    | Device.RM1 -> new HardwareTouchscreenDriver(currentDeviceMap.["cyttsp5_mt"], 767, 1023, 32, false)
-    | Device.RM2 -> new HardwareTouchscreenDriver(currentDeviceMap.["pt_mt"], 1403, 1871, 32, false)
+// /// Holds an instance of a touchscreen driver
+//let Touchscreen =
+//    match CurrentDevice with
+//    | Device.RM1 -> new HardwareTouchscreenDriver(currentDeviceMap.["cyttsp5_mt"], 767, 1023, 32, false)
+//    | Device.RM2 -> new HardwareTouchscreenDriver(currentDeviceMap.["pt_mt"], 1403, 1871, 32, false)
 
 /// Holds an instance of a performance monitor
 let Performance = HardwarePerformanceMonitor() :> IPerformanceMonitor
@@ -104,4 +104,4 @@ let Performance = HardwarePerformanceMonitor() :> IPerformanceMonitor
 // /// Holds an instance of a power supply monitor for USB power
 //let UsbPower = new HardwarePowerSupplyMonitor("/sys/class/power_supply/imx_usb_charger");
 
-//let Keyboard = HardwareKeyboardDriver("") :> IKeyboardDriver
+//let Keyboard = new HardwareKeyboardDriver("TODO") :> IKeyboardDriver

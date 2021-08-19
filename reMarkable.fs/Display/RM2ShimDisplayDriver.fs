@@ -8,7 +8,7 @@ open Microsoft.FSharp.Core
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.Formats
 open reMarkable.fs
-open reMarkable.fs.Display.Rgb565
+open reMarkable.fs.Display.Framebuffer
 open reMarkable.fs.UnixExceptions
 
 module Driver = 
@@ -37,7 +37,7 @@ type RM2ShimDisplayDriver() =
     
     let width, height = 1404, 1872
     
-    let framebuffer = new HardwareFramebuffer(devicePath, width, height, width, height)
+    let framebuffer = new HardwareFramebuffer(devicePath, width, height)
     
     interface IDisposable with
         member _.Dispose() =
@@ -45,17 +45,15 @@ type RM2ShimDisplayDriver() =
             (framebuffer :> IDisposable).Dispose()
             
     interface IDisplayDriver with
-        member _.VisibleWidth = width
-        member _.VisibleHeight = height
-        member _.VirtualWidth = width
-        member _.VirtualHeight = height
+        member _.Width = width
+        member _.Height = height
         member _.Framebuffer = framebuffer :> IFramebuffer
 
-        member this.Draw(args: DrawArgs): unit =
+        member this.DrawAndRefresh(args: DrawAndRefreshArgs): unit =
             // first write to framebuffer
             let func =
-                (fun fb rect point ->
-                    Rgb565FramebufferEncoder(fb, rect, point)
+                (fun width rect point ->
+                    Rgb565.Rgb565FramebufferEncoder(width, rect, point)
                     :> IImageEncoder
                 )
             (framebuffer :> IFramebuffer).Write(args.Image, args.SrcArea, args.DestPoint, func)

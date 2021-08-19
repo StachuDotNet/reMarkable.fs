@@ -3,7 +3,7 @@
 open System.Runtime.InteropServices
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
-
+open reMarkable.fs.Display.Framebuffer
 
 // public enum AutoUpdateMode : uint
 // {
@@ -115,22 +115,7 @@ type FrameBufferUpdateData =
     val mutable AltData: FrameBufferAltBufferData
   end
 
-
-//type RefreshArgs =
-//    { /// What should we follow up and refresh on the screen?
-//      RefreshArea: Rectangle option
-//      
-//      /// The waveform mode to use when refreshing the screen.
-//      /// If omitted, will use <see cref="WaveformMode.Auto" />
-//      WaveformMode: WaveformMode option
-//      
-//      /// The display temperature to use to refresh the region
-//      DisplayTemp: DisplayTemp option
-//      
-//      /// The update mode to use to refresh
-//      UpdateMode: UpdateMode option }
-    
-type DrawArgs =
+type DrawAndRefreshArgs =
     { /// The image to write to the screen
       Image: Image<Rgb24>
       
@@ -159,19 +144,13 @@ type IDisplayDriver =
     abstract member Framebuffer: IFramebuffer
 
     /// The vertical resolution of the backing framebuffer
-    abstract member VirtualHeight: int
+    abstract member Height: int
 
     /// The horizontal resolution of the backing framebuffer
-    abstract member VirtualWidth: int
-
-    /// The vertical resolution of the physically visible portion of the screen
-    abstract member VisibleHeight: int
-
-    /// The horizontal resolution of the physically visible portion of the screen
-    abstract member VisibleWidth: int
+    abstract member Width: int
 
     /// Draws image data to the screen and refreshes a portion of it
-    abstract member Draw: DrawArgs -> unit
+    abstract member DrawAndRefresh: DrawAndRefreshArgs -> unit
 
     ///  Draws the contents of the internal buffer to the display device
     ///

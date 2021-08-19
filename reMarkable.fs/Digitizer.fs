@@ -116,8 +116,6 @@ type IDigitizerDriver =
 /// Provides methods for monitoring the digitizer installed in the device
 /// 
 /// <param name="devicePath">The device event stream to poll for new events</param>
-/// <param name="width">The virtual width of the device</param>
-/// <param name="height">The virtual height of the device</param>
 type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
     inherit UnixInputDriver(devicePath)
     
@@ -209,7 +207,9 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
             let eventCode: DigitizerEventAbsCode = LanguagePrimitives.EnumOfValue (int data.Code)
 
             match eventCode with
-            | DigitizerEventAbsCode.AbsX ->        currentPosition.X <- data.Value
+            | DigitizerEventAbsCode.AbsX ->
+                printfn "X: %i" data.Value
+                currentPosition.X <- data.Value
             | DigitizerEventAbsCode.AbsY ->        currentPosition.Y <- data.Value
             | DigitizerEventAbsCode.AbsPressure -> currentPressure <- data.Value
             | DigitizerEventAbsCode.AbsDistance -> currentDistance <- data.Value

@@ -1198,11 +1198,12 @@ type SymbolAtlas<'T when 'T : enum<int>>(pages: SymbolAtlasPage[]) =
             page.Clone(cropper)
         | _ -> raise <| ArgumentOutOfRangeException(nameof(size), size, "not a known size")
 
-
-let private assembly = Assembly.GetExecutingAssembly()
-
-let SegoeMdl2: SymbolAtlas<Glyphs> =
-    [| SymbolAtlasPage(getFileInBytes assembly "atlas16.png", 16)
-       SymbolAtlasPage(getFileInBytes assembly "atlas32.png", 32)
-       SymbolAtlasPage(getFileInBytes assembly "atlas64.png", 64) |]
-    |> SymbolAtlas<Glyphs>
+let SegoeMdl2: Lazy<SymbolAtlas<Glyphs>> =
+    lazy (
+        let assembly = Assembly.GetExecutingAssembly()
+        
+        [| SymbolAtlasPage(getFileInBytes assembly "atlas16.png", 16)
+           SymbolAtlasPage(getFileInBytes assembly "atlas32.png", 32)
+           SymbolAtlasPage(getFileInBytes assembly "atlas64.png", 64) |]
+        |> SymbolAtlas<Glyphs>
+    )

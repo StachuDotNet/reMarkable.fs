@@ -133,7 +133,8 @@ let getNetworkMeasurements(): Dictionary<string, NetDeviceInfo> =
                   RxFifo = Int64.Parse(columns.[5]) 
                   RxFrame = Int64.Parse(columns.[6]) 
                   RxMulticast = Int64.Parse(columns.[8]) 
-                  RxPackets = Int64.Parse(columns.[2]) 
+                  RxPackets = Int64.Parse(columns.[2])
+                  
                   TxBytes = Int64.Parse(columns.[9]) 
                   TxCompressed = Int64.Parse(columns.[15]) 
                   TxDrop = Int64.Parse(columns.[12]) 

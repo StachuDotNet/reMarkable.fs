@@ -1,4 +1,5 @@
 /// Provides utilities for packing and unpacking <see cref="ushort" /> encoded RGB565 colors 
+[<RequireQualifiedAccess>]
 module reMarkable.fs.Display.Rgb565
 
 open System
@@ -49,14 +50,17 @@ let Unpack(rgbEncodedValue: uint16): Rgb24 =
     let b = (byte)((rgbEncodedValue &&& MaxB) <<< 3)
 
     Rgb24(r, g, b)
-    
+
+/// Finds the stream location corresponding to the pixel coordinates
+let PointToOffset(virtualWidth: int, x: int, y: int) =
+    (virtualWidth * y + x) * 2
 
 /// Provides methods for encoding an <see cref="Image" /> to a RGB565 framebuffer stream
 /// 
 /// <param name="framebuffer">The hardware framebuffer to write data to</param>
 /// <param name="srcArea">The area of the source image to encode</param>
 /// <param name="destPoint">The location to place the top-leftmost corner of the source area on the destination framebuffer</param>
-type Rgb565FramebufferEncoder(framebuffer: IFramebuffer, srcArea: Rectangle, destPoint: Point)=
+type Rgb565FramebufferEncoder(virtualWidth: int, srcArea: Rectangle, destPoint: Point)=
     interface IImageEncoder with
         member _.EncodeAsync<'TPixel when 'TPixel :> IPixel<'TPixel>>(_image: Image<'TPixel>, _stream: Stream)  =
             raise <| NotImplementedException()
@@ -75,7 +79,7 @@ type Rgb565FramebufferEncoder(framebuffer: IFramebuffer, srcArea: Rectangle, des
                     span.[x].ToRgba32(&rgba32)
                     rgb565Buf.[x] <- Pack(rgba32.R, rgba32.G, rgba32.B)
 
-                stream.Seek(framebuffer.PointToOffset(destPoint.X, destPoint.Y + y) |> int64, SeekOrigin.Begin)
+                stream.Seek(PointToOffset(virtualWidth, destPoint.X, destPoint.Y + y) |> int64, SeekOrigin.Begin)
                     |> ignore
 
                 Buffer.BlockCopy(rgb565Buf, 0, buf, 0, buf.Length)
@@ -83,7 +87,7 @@ type Rgb565FramebufferEncoder(framebuffer: IFramebuffer, srcArea: Rectangle, des
 
 
 /// Provides methods for decoding a RGB565 framebuffer stream to an <see cref="Image" />
-type Rgb565FramebufferDecoder(framebuffer: IFramebuffer , areaToReadFrom: Rectangle) =
+type Rgb565FramebufferDecoder(virtualWidth: int , areaToReadFrom: Rectangle) =
      /// Decodes the given RGB565 stream into the provided image
      /// 
      /// <typeparam name="TPixel">The pixel format</typeparam>
@@ -95,7 +99,7 @@ type Rgb565FramebufferDecoder(framebuffer: IFramebuffer , areaToReadFrom: Rectan
          let rgb565Buf: uint16 array  = Array.zeroCreate areaToReadFrom.Width
 
          for y in 0 .. areaToReadFrom.Height - 1 do
-             stream.Seek(framebuffer.PointToOffset(areaToReadFrom.X, areaToReadFrom.Y + y) |> int64, SeekOrigin.Begin)
+             stream.Seek(PointToOffset(virtualWidth, areaToReadFrom.X, areaToReadFrom.Y + y) |> int64, SeekOrigin.Begin)
                 |> ignore
              stream.Read(buf, 0, buf.Length)
                 |> ignore
