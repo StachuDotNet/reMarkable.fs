@@ -89,6 +89,7 @@ let drawIcon() =
 let startDigitizerTracker() =
     let mutable prevState: StylusState option = None
     let mutable lastUpdated = DateTime.Now
+
     ReMarkable.Digitizer_PleaseReadCommentAtDefinition.StylusUpdate.Add(fun state ->
         match prevState with
         | Some prev ->
@@ -108,26 +109,31 @@ let main _argv =
     printfn "hello from F#"
     let threadLock = new ManualResetEventSlim()
     
-    let font = Fonts.SegoeUi.CreateFont(100f)
-    let text = sprintf "Now: %A" DateTime.Now
+    ReMarkable.Touchscreen.Pressed.Add (printfn "Pressed: %A")
+    ReMarkable.Touchscreen.Pressed.Add (printfn "Released: %A")
     
-    let containingRectangle, buffer =
-        let textRectangle = Fonts.measureString(font, text) //|> RectangleExtensions.GetContainingIntRect
-        printfn "Text rectangle: %A" textRectangle
-        
-        let buffer = new Image<Rgb24>(textRectangle.Width, textRectangle.Height)
-        Fonts.drawString(font, Color.LightGray, buffer, text)
-        textRectangle, buffer
     
-    ReMarkable.Display.DrawAndRefresh 
-        { Image = buffer
-          SrcArea = containingRectangle
-          DestPoint = Point(0, 0)
-          
-          RefreshArea = Some containingRectangle
-          WaveformMode = None
-          DisplayTemp = None
-          UpdateMode = None }
+    
+//    let font = Fonts.SegoeUi.CreateFont(100f)
+//    let text = sprintf "Now: %A" DateTime.Now
+    
+//    let containingRectangle, buffer =
+//        let textRectangle = Fonts.measureString(font, text) //|> RectangleExtensions.GetContainingIntRect
+//        printfn "Text rectangle: %A" textRectangle
+//        
+//        let buffer = new Image<Rgb24>(textRectangle.Width, textRectangle.Height)
+//        Fonts.drawString(font, Color.LightGray, buffer, text)
+//        textRectangle, buffer
+//    
+//    ReMarkable.Display.DrawAndRefresh 
+//        { Image = buffer
+//          SrcArea = containingRectangle
+//          DestPoint = Point(0, 0)
+//          
+//          RefreshArea = Some containingRectangle
+//          WaveformMode = None
+//          DisplayTemp = None
+//          UpdateMode = None }
   
     threadLock.Wait()
     0

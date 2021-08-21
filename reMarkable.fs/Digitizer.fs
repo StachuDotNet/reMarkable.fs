@@ -18,49 +18,49 @@ type StylusTool =
 /// Possible event types the digitizer can raise
 type DigitizerEventType =
     /// Used as markers to separate events; events may be separated in time or in space, such as with the multitouch protocol
-    | Syn = 0
+    | Syn = 0us
     
     /// Used to describe state changes of keyboards, buttons, or other key-like devices
-    | Key = 1
+    | Key = 1us
     
     /// Used to describe absolute axis value changes, e.g. describing the coordinates of a touch on a touchscreen
-    | Abs = 3
+    | Abs = 3us
 
 /// Defines the possible event codes the digitizer can raise through the KEY event
 type DigitizerEventKeyCode =
     /// Reports a transition to the stylus nib tool
-    | ToolPen = 320
+    | ToolPen = 320us
 
     /// Reports a transition to the stylus "eraser" tool
-    | ToolRubber = 321
+    | ToolRubber = 321us
 
     /// Reports that the stylus has pressed the screen
-    | Touch = 330
+    | Touch = 330us
 
     /// Reports a press of the first stylus button
-    | Stylus = 331
+    | Stylus = 331us
 
     /// Reports a press of the second stylus button
-    | Stylus2 = 332
+    | Stylus2 = 332us
 
 type DigitizerEventAbsCode =
     /// Reports the X position of the stylus
-    | AbsX = 0
+    | AbsX = 0us
 
     /// Reports the Y position of the stylus
-    | AbsY = 1
+    | AbsY = 1us
 
     /// Reports the pressure of the stylus
-    | AbsPressure = 24
+    | AbsPressure = 24us
 
     /// Reports the distance from the stylus to the digitizer
-    | AbsDistance = 25
+    | AbsDistance = 25us
 
     /// Reports the tilt of the stylus in the X direction
-    | AbsTiltX = 26
+    | AbsTiltX = 26us
 
     /// Reports the tilt of the stylus in the Y direction
-    | AbsTiltY = 27
+    | AbsTiltY = 27us
 
 /// Represents a stylus' complete immediate state
 type StylusState(tool: StylusTool option, position: Point, pressure: int, distance: int, tilt: Point) =
@@ -155,7 +155,7 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
     override this.DataAvailable(e: DataAvailableEventArgs<EvEvent>) =
         let data = e.Data
         
-        let eventType: DigitizerEventType = LanguagePrimitives.EnumOfValue (data.Type |> int)
+        let eventType: DigitizerEventType = data.Type |> LanguagePrimitives.EnumOfValue 
             
         // printfn "Event data: (Code: " e.Data.Type
 
@@ -175,8 +175,8 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
                 currentDistance <- 0
         
         | DigitizerEventType.Key ->
-            let key: DigitizerEventKeyCode = LanguagePrimitives.EnumOfValue (int data.Code)
-            let state: ButtonState = LanguagePrimitives.EnumOfValue (int data.Value)
+            let key: DigitizerEventKeyCode = data.Code |> LanguagePrimitives.EnumOfValue  
+            let state: ButtonState = data.Value |> LanguagePrimitives.EnumOfValue 
 
             buttonStates.[key] <- state
 
@@ -204,7 +204,7 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
             | _ -> raise <| ArgumentOutOfRangeException(nameof(key), key, key.GetType().Name)
         
         | DigitizerEventType.Abs ->
-            let eventCode: DigitizerEventAbsCode = LanguagePrimitives.EnumOfValue (int data.Code)
+            let eventCode: DigitizerEventAbsCode = data.Code |> LanguagePrimitives.EnumOfValue 
 
             match eventCode with
             | DigitizerEventAbsCode.AbsX ->

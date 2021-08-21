@@ -5,6 +5,10 @@ open System.IO
 open reMarkable.fs.Util
 open System.Runtime.InteropServices
 
+// Without this #nowarn, we get a compilation warning on EvEvent:
+// "Uses of this construct may result in the generation of unverifiable .NET IL code."
+#nowarn "9" 
+
 /// Interchange format for an input device event
 /// See https://www.kernel.org/doc/Documentation/input/event-codes.txt for details around Type and Code meanings.
 [<StructLayout(LayoutKind.Explicit, Size = 16)>]

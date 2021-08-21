@@ -1,5 +1,5 @@
 // The reMarkable devices feature multi-touch technology, tracking the movements of multiple fingers.
-// ...
+//
 // Advice: read through https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 module reMarkable.fs.Touchscreen
 
@@ -29,80 +29,79 @@ type TouchscreenEventAbsCode =
     /// 
     /// If the event's "value" corresponding to this event is a positive number, this denotes a tracked finger
     /// If the corresponding "value" is -1, that denotes the _removal_ of the finger in focus  
-    | TrackingId = 57
+    | TrackingId = 57us
     
     /// Reports the slot ID of a finger
-    | Slot = 47
+    /// The reMarkable supports up to 32 slots (wow!?)
+    | Slot = 47us
 
     /// Reports the major axis of a multi-touch pair
-    | MajorAxis = 48
+    | MajorAxis = 48us
 
     /// Reports the minor axis of a multi-touch pair
-    | MinorAxis = 49
+    | MinorAxis = 49us
     
     /// Reports the orientation of a multi-touch pair
-    | Orientation = 52
+    | Orientation = 52us
 
     /// Reports the X position of a finger
-    | PositionX = 53
+    | PositionX = 53us
 
     /// Reports the Y position of a finger
-    | PositionY = 54
+    | PositionY = 54us
 
     /// Reports the pressure of the finger
-    | Pressure = 58
+    | Pressure = 58us
     
 /// Possible event types the touchscreen can raise
 type TouchscreenEventType =
-    | Syn = 0
-    | Key = 1
-    | Relative = 2
-    | Absolute = 3
-
+    | Syn = 0us
+    | Absolute = 3us
 
 /// A finger's complete immediate state
+[<Struct>]
 type FingerState =
-  struct
-    /// Current display position
-    val mutable DevicePosition: Point
-
-    /// Current device position
-    val mutable RawPosition: Point
+  { /// Tracking ID (used for tracking multi-touch)
+    mutable Id: int
+    
+    /// Current position
+    mutable Position: Point
 
     /// Pressure, from 0-255
-    val mutable Pressure: int
+    mutable Pressure: int
 
-    /// Previous display position
-    val mutable PreviousDevicePosition: Point
-
-    /// Previous device position
-    val mutable PreviousRawPosition: Point
+    /// Previous position
+    mutable PreviousPosition: Point
 
     /// Previous pressure, from 0-255
-    val mutable PreviousPressure: int
+    mutable PreviousPressure: int
 
     /// Current status
-    val mutable Status: FingerStatus
-
-    /// Tracking ID (used for tracking multi-touch)
-    val mutable Id: int
-  end
-
+    mutable Status: FingerStatus }
+  
+  member this.UpdatePressure newPressure =
+      this.PreviousPressure <- this.Pressure
+      this.Pressure <- newPressure
+  
+  member this.UpdateXPosition newX =
+      this.PreviousPosition.X <- this.Position.X
+      this.Position.X <- newX
+  
+  member this.UpdateYPosition newY =
+      this.PreviousPosition.Y <- this.Position.Y
+      this.Position.Y <- newY
 
 /// Provides a set of methods for monitoring the device's physical touchscreen
-type HardwareTouchscreenDriver(devicePath: string, width: int, height: int,shouldInvertWidth: bool) =
+type HardwareTouchscreenDriver(devicePath: string, deviceHeight: int) =
     inherit UnixInputDriver(devicePath)
 
     /// Temporary finger position accumulated for event dispatch
-    let mutable position: Point = Point.Empty
-    let fingers = Array.zeroCreate<FingerState> 32
+    let fingers = Array.zeroCreate<FingerState> 32 |> Array.map(fun finger -> { finger with Status = Untracked }) 
     let moved, pressed, released = Event<FingerState>(), Event<FingerState>(), Event<FingerState>()
     
-    /// Temporary finger slot index accumulated for event dispatch
+    /// Which 'finger slot' are we currently focused on?
+    /// This changes over time as fingers are lifted, moved, have pressures changed, etc.
     let mutable currentSlotOfFocus: int = 0
-    
-    member _.Height = height
-    member _.Width = width
     
     /// The status of each finger arranged according to their slot index
     member _.Fingers = fingers
@@ -123,56 +122,35 @@ type HardwareTouchscreenDriver(devicePath: string, width: int, height: int,shoul
             
             if currentSlotOfFocus >= fingers.Length then
                 currentSlotOfFocus <- fingers.Length - 1 //sink
-            
-        | TouchscreenEventAbsCode.MajorAxis -> ()
-        | TouchscreenEventAbsCode.MinorAxis -> ()
-        | TouchscreenEventAbsCode.Orientation -> ()
-        | TouchscreenEventAbsCode.PositionX -> 
-            fingers.[currentSlotOfFocus].PreviousDevicePosition.X <- fingers.[currentSlotOfFocus].DevicePosition.X
-            fingers.[currentSlotOfFocus].PreviousRawPosition.X <- fingers.[currentSlotOfFocus].RawPosition.X
-
-            let pos = // why float before?
-                if shouldInvertWidth then
-                    this.Width - 1 - value
-                else
-                    value
-
-            let width = 1404; // todo: OutputDevices.Display.VisibleWidth
-            position.X <- (int)(pos / this.Width * width);
-
-            fingers.[currentSlotOfFocus].DevicePosition.X <- position.X
-            fingers.[currentSlotOfFocus].RawPosition.X <- value
+        
+        | TouchscreenEventAbsCode.PositionX ->
+            fingers.[currentSlotOfFocus].UpdateXPosition value
         
         | TouchscreenEventAbsCode.PositionY ->
-            fingers.[currentSlotOfFocus].PreviousDevicePosition.Y <- fingers.[currentSlotOfFocus].DevicePosition.Y;
-            fingers.[currentSlotOfFocus].PreviousRawPosition.Y <- fingers.[currentSlotOfFocus].RawPosition.Y;
-
-            let pos = // this was float?
-                this.Height - 1 - value
-            
-            let height = 1872 // todo: OutputDevices.Display.VisibleHeight
-            position.Y <- (int)(pos / this.Height * height)
-
-            fingers.[currentSlotOfFocus].DevicePosition.Y <- position.Y
-            fingers.[currentSlotOfFocus].RawPosition.Y <- value
+            let pos =  deviceHeight - 1 - value // ???
+            fingers.[currentSlotOfFocus].UpdateYPosition pos
         
         | TouchscreenEventAbsCode.TrackingId ->
             if value = -1 then
                 fingers.[currentSlotOfFocus].Status <- FingerStatus.Up
-            elif (fingers.[currentSlotOfFocus].Status = FingerStatus.Untracked) then
+            elif fingers.[currentSlotOfFocus].Status = FingerStatus.Untracked then
                 fingers.[currentSlotOfFocus].Id <- value
                 fingers.[currentSlotOfFocus].Status <- FingerStatus.Down
         
         | TouchscreenEventAbsCode.Pressure ->
-            fingers.[currentSlotOfFocus].PreviousPressure <- fingers.[currentSlotOfFocus].Pressure
-            fingers.[currentSlotOfFocus].Pressure <- value
+            fingers.[currentSlotOfFocus].UpdatePressure value
             
-        | _ -> raise <| ArgumentOutOfRangeException(nameof(code), code, code.GetType().Name);
+        // so far, I'm not handling these :) todo.
+        | TouchscreenEventAbsCode.MajorAxis -> ()
+        | TouchscreenEventAbsCode.MinorAxis -> ()
+        | TouchscreenEventAbsCode.Orientation -> ()
+        
+        | _ -> raise <| ArgumentOutOfRangeException(nameof code, code, code.GetType().Name)
 
     override this.DataAvailable(e: DataAvailableEventArgs<EvEvent>) =
-        let data = e.Data
+        let eventData = e.Data
 
-        let eventType: TouchscreenEventType = LanguagePrimitives.EnumOfValue <| int data.Type
+        let eventType: TouchscreenEventType = eventData.Type |> LanguagePrimitives.EnumOfValue
 
         match eventType with
         | TouchscreenEventType.Syn ->
@@ -191,7 +169,7 @@ type HardwareTouchscreenDriver(devicePath: string, width: int, height: int,shoul
             currentSlotOfFocus <- 0
 
         | TouchscreenEventType.Absolute ->
-            let absCode: TouchscreenEventAbsCode = LanguagePrimitives.EnumOfValue (int data.Code)
-            this.ProcessAbsoluteTouch(absCode, data.Value);
+            let absCode: TouchscreenEventAbsCode = eventData.Code |> LanguagePrimitives.EnumOfValue
+            this.ProcessAbsoluteTouch(absCode, eventData.Value)
                 
-        | _ -> raise <| ArgumentOutOfRangeException(nameof(eventType), eventType, eventType.GetType().Name);
+        | _ -> raise <| ArgumentOutOfRangeException(nameof eventType, eventType, eventType.GetType().Name)

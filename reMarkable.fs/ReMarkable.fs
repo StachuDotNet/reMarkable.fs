@@ -9,6 +9,7 @@ open reMarkable.fs.Digitizer
 open reMarkable.fs.Display
 open reMarkable.fs.PhysicalButtons
 open reMarkable.fs.PowerSupply
+open reMarkable.fs.Touchscreen
 open reMarkable.fs.Unix.Driver.Performance
 open reMarkable.fs.Wireless
 
@@ -92,12 +93,12 @@ let PhysicalButtons =
     | Device.RM1 -> new PhysicalButtonDriver(currentDeviceMap.["gpio-keys"])
     | Device.RM2 -> new PhysicalButtonDriver(currentDeviceMap.["30370000.snvs:snvs-powerkey"])
 
-// /// Holds an instance of a touchscreen driver
-// /// (currently this is disabled as it's broken and yielding runtime exceptions)
-//let Touchscreen =
-//    match CurrentDevice with
-//    | Device.RM1 -> new HardwareTouchscreenDriver(currentDeviceMap.["cyttsp5_mt"], 767, 1023, 32, false)
-//    | Device.RM2 -> new HardwareTouchscreenDriver(currentDeviceMap.["pt_mt"], 1403, 1871, 32, false)
+ /// Holds an instance of a touchscreen driver
+ /// This untested and likely broken for rM1, based on device-touchscreen resolution discrepancies 
+let Touchscreen =
+    match CurrentDevice with
+    | Device.RM1 -> new HardwareTouchscreenDriver(currentDeviceMap.["cyttsp5_mt"], 1023)
+    | Device.RM2 -> new HardwareTouchscreenDriver(currentDeviceMap.["pt_mt"], 1871)
 
 /// Holds an instance of a performance monitor
 let Performance = HardwarePerformanceMonitor() :> IPerformanceMonitor
