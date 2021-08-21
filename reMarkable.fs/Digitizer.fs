@@ -1,4 +1,4 @@
-﻿namespace reMarkable.fs.Digitizer
+﻿module reMarkable.fs.Digitizer
 
 open System
 open System.Collections.Generic

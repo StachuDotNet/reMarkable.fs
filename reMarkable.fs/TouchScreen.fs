@@ -1,13 +1,12 @@
-namespace reMarkable.fs.Touchscreen
+// The reMarkable devices feature multi-touch technology, tracking the movements of multiple fingers.
+// ...
+// Advice: read through https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
+module reMarkable.fs.Touchscreen
 
 open System
 open SixLabors.ImageSharp
 open reMarkable.fs.UnixInput
 open reMarkable.fs.Util
-
-// The reMarkable devices feature multi-touch technology, tracking the movements of multiple fingers.
-// ...
-// Advice: read through https://www.kernel.org/doc/Documentation/input/multi-touch-protocol.txt
 
 /// Possible states in which the touchscreen can represent a finger
 type FingerStatus =
@@ -25,35 +24,33 @@ type FingerStatus =
 
 /// Possible event codes the touchscreen can raise through the ABS event
 type TouchscreenEventAbsCode =
-    /// Reports the distance of a finger from the touchscreen
-    | Distance = 25
-
+    /// Reports the tracking ID of the finger event
+    /// This is fired 'first' within a group of events; the events that follow correspond to that tracked finger
+    /// 
+    /// If the event's "value" corresponding to this event is a positive number, this denotes a tracked finger
+    /// If the corresponding "value" is -1, that denotes the _removal_ of the finger in focus  
+    | TrackingId = 57
+    
     /// Reports the slot ID of a finger
-    | MultiTouchSlot = 47
+    | Slot = 47
 
     /// Reports the major axis of a multi-touch pair
-    | MultiTouchTouchMajor = 48
+    | MajorAxis = 48
 
     /// Reports the minor axis of a multi-touch pair
-    | MultiTouchTouchMinor = 49
+    | MinorAxis = 49
     
     /// Reports the orientation of a multi-touch pair
-    | MultiTouchOrientation = 52
+    | Orientation = 52
 
     /// Reports the X position of a finger
-    | MultiTouchPositionX = 53
+    | PositionX = 53
 
     /// Reports the Y position of a finger
-    | MultiTouchPositionY = 54
-
-    /// Reports the tool ID of a finger
-    | MultiTouchToolType = 55
-
-    /// Reports the tracking ID of the finger event
-    | MultiTouchTrackingId = 57
+    | PositionY = 54
 
     /// Reports the pressure of the finger
-    | MultiTouchPressure = 58
+    | Pressure = 58
     
 /// Possible event types the touchscreen can raise
 type TouchscreenEventType =
@@ -93,20 +90,18 @@ type FingerState =
 
 
 /// Provides a set of methods for monitoring the device's physical touchscreen
-type HardwareTouchscreenDriver(devicePath: string, width: int, height: int, maxFingers: int, shouldInvertWidth: bool) =
+type HardwareTouchscreenDriver(devicePath: string, width: int, height: int,shouldInvertWidth: bool) =
     inherit UnixInputDriver(devicePath)
 
     /// Temporary finger position accumulated for event dispatch
     let mutable position: Point = Point.Empty
-    let fingers = Array.zeroCreate<FingerState> maxFingers
+    let fingers = Array.zeroCreate<FingerState> 32
     let moved, pressed, released = Event<FingerState>(), Event<FingerState>(), Event<FingerState>()
     
     /// Temporary finger slot index accumulated for event dispatch
-    let mutable slot: int = 0
-    
+    let mutable currentSlotOfFocus: int = 0
     
     member _.Height = height
-    member _.MaxFingers = maxFingers
     member _.Width = width
     
     /// The status of each finger arranged according to their slot index
@@ -123,19 +118,18 @@ type HardwareTouchscreenDriver(devicePath: string, width: int, height: int, maxF
 
     member private this.ProcessAbsoluteTouch(code: TouchscreenEventAbsCode, value: int) =
         match code with
-        | TouchscreenEventAbsCode.Distance -> ()
-        | TouchscreenEventAbsCode.MultiTouchSlot ->
-            slot <- value
+        | TouchscreenEventAbsCode.Slot ->
+            currentSlotOfFocus <- value
             
-            if slot >= fingers.Length then
-                slot <- fingers.Length - 1 //sink
+            if currentSlotOfFocus >= fingers.Length then
+                currentSlotOfFocus <- fingers.Length - 1 //sink
             
-        | TouchscreenEventAbsCode.MultiTouchTouchMajor -> ()
-        | TouchscreenEventAbsCode.MultiTouchTouchMinor -> ()
-        | TouchscreenEventAbsCode.MultiTouchOrientation -> ()
-        | TouchscreenEventAbsCode.MultiTouchPositionX -> 
-            fingers.[slot].PreviousDevicePosition.X <- fingers.[slot].DevicePosition.X
-            fingers.[slot].PreviousRawPosition.X <- fingers.[slot].RawPosition.X
+        | TouchscreenEventAbsCode.MajorAxis -> ()
+        | TouchscreenEventAbsCode.MinorAxis -> ()
+        | TouchscreenEventAbsCode.Orientation -> ()
+        | TouchscreenEventAbsCode.PositionX -> 
+            fingers.[currentSlotOfFocus].PreviousDevicePosition.X <- fingers.[currentSlotOfFocus].DevicePosition.X
+            fingers.[currentSlotOfFocus].PreviousRawPosition.X <- fingers.[currentSlotOfFocus].RawPosition.X
 
             let pos = // why float before?
                 if shouldInvertWidth then
@@ -146,12 +140,12 @@ type HardwareTouchscreenDriver(devicePath: string, width: int, height: int, maxF
             let width = 1404; // todo: OutputDevices.Display.VisibleWidth
             position.X <- (int)(pos / this.Width * width);
 
-            fingers.[slot].DevicePosition.X <- position.X
-            fingers.[slot].RawPosition.X <- value
+            fingers.[currentSlotOfFocus].DevicePosition.X <- position.X
+            fingers.[currentSlotOfFocus].RawPosition.X <- value
         
-        | TouchscreenEventAbsCode.MultiTouchPositionY ->
-            fingers.[slot].PreviousDevicePosition.Y <- fingers.[slot].DevicePosition.Y;
-            fingers.[slot].PreviousRawPosition.Y <- fingers.[slot].RawPosition.Y;
+        | TouchscreenEventAbsCode.PositionY ->
+            fingers.[currentSlotOfFocus].PreviousDevicePosition.Y <- fingers.[currentSlotOfFocus].DevicePosition.Y;
+            fingers.[currentSlotOfFocus].PreviousRawPosition.Y <- fingers.[currentSlotOfFocus].RawPosition.Y;
 
             let pos = // this was float?
                 this.Height - 1 - value
@@ -159,45 +153,42 @@ type HardwareTouchscreenDriver(devicePath: string, width: int, height: int, maxF
             let height = 1872 // todo: OutputDevices.Display.VisibleHeight
             position.Y <- (int)(pos / this.Height * height)
 
-            fingers.[slot].DevicePosition.Y <- position.Y
-            fingers.[slot].RawPosition.Y <- value
+            fingers.[currentSlotOfFocus].DevicePosition.Y <- position.Y
+            fingers.[currentSlotOfFocus].RawPosition.Y <- value
         
-        | TouchscreenEventAbsCode.MultiTouchToolType -> ()
-        | TouchscreenEventAbsCode.MultiTouchTrackingId ->
-            printfn "slot: %A" slot
-            printfn "fingers: %A" fingers
+        | TouchscreenEventAbsCode.TrackingId ->
             if value = -1 then
-                fingers.[slot].Status <- FingerStatus.Up
-            elif (fingers.[slot].Status = FingerStatus.Untracked) then
-                fingers.[slot].Id <- value
-                fingers.[slot].Status <- FingerStatus.Down
+                fingers.[currentSlotOfFocus].Status <- FingerStatus.Up
+            elif (fingers.[currentSlotOfFocus].Status = FingerStatus.Untracked) then
+                fingers.[currentSlotOfFocus].Id <- value
+                fingers.[currentSlotOfFocus].Status <- FingerStatus.Down
         
-        | TouchscreenEventAbsCode.MultiTouchPressure ->
-            fingers.[slot].PreviousPressure <- fingers.[slot].Pressure
-            fingers.[slot].Pressure <- value
+        | TouchscreenEventAbsCode.Pressure ->
+            fingers.[currentSlotOfFocus].PreviousPressure <- fingers.[currentSlotOfFocus].Pressure
+            fingers.[currentSlotOfFocus].Pressure <- value
             
         | _ -> raise <| ArgumentOutOfRangeException(nameof(code), code, code.GetType().Name);
 
     override this.DataAvailable(e: DataAvailableEventArgs<EvEvent>) =
         let data = e.Data
 
-        let eventType: TouchscreenEventType = LanguagePrimitives.EnumOfValue <| int data.Type // is this int safe?
+        let eventType: TouchscreenEventType = LanguagePrimitives.EnumOfValue <| int data.Type
 
         match eventType with
         | TouchscreenEventType.Syn ->
-            match fingers.[slot].Status with
-            | FingerStatus.Down -> pressed.Trigger fingers.[slot]
-            | FingerStatus.Up -> released.Trigger fingers.[slot]
-            | FingerStatus.Moving -> moved.Trigger fingers.[slot]
+            match fingers.[currentSlotOfFocus].Status with
+            | FingerStatus.Down -> pressed.Trigger fingers.[currentSlotOfFocus]
+            | FingerStatus.Up -> released.Trigger fingers.[currentSlotOfFocus]
+            | FingerStatus.Moving -> moved.Trigger fingers.[currentSlotOfFocus]
             | FingerStatus.Untracked -> ()
 
-            fingers.[slot].Status <-
-                match fingers.[slot].Status with
+            fingers.[currentSlotOfFocus].Status <-
+                match fingers.[currentSlotOfFocus].Status with
                 | FingerStatus.Up -> FingerStatus.Untracked
                 | FingerStatus.Down -> FingerStatus.Moving
-                | _ -> fingers.[slot].Status
+                | _ -> fingers.[currentSlotOfFocus].Status
 
-            slot <- 0
+            currentSlotOfFocus <- 0
 
         | TouchscreenEventType.Absolute ->
             let absCode: TouchscreenEventAbsCode = LanguagePrimitives.EnumOfValue (int data.Code)

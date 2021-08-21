@@ -15,7 +15,6 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Compile Include="Logger.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

@@ -8,13 +8,12 @@ open System.Linq
 open reMarkable.fs.Digitizer
 open reMarkable.fs.Display
 open reMarkable.fs.PhysicalButtons
-open reMarkable.fs.Touchscreen
 open reMarkable.fs.PowerSupply
 open reMarkable.fs.Unix.Driver.Performance
 open reMarkable.fs.Wireless
 
 /// Possible Remarkable or emulated device types
-type Device = RM1 | RM2
+type Device = RM1 | RM2 
     
 /// Parses `/proc/bus/input/devices` to create a mapped dictionary of input device names and their event streams
 let currentDeviceMap: Dictionary<string, string> =
@@ -78,13 +77,14 @@ let PowerSupply =
 
 let Wireless = HardwareWirelessMonitor()
 
-///// Holds an instance of a digitizer driver 
-//let Digitizer =
-//    match CurrentDevice with
-//    | Device.RM1
-//    | Device.RM2 ->
-//        new HardwareDigitizerDriver(currentDeviceMap.["Wacom I2C Digitizer"], 20967, 15725)
-//        :> IDigitizerDriver
+/// Holds an instance of a digitizer driver
+/// Warning: this is currently a bit broken - namely, the coordinates are off
+let Digitizer_PleaseReadCommentAtDefinition =
+    match CurrentDevice with
+    | Device.RM1
+    | Device.RM2 ->
+        new HardwareDigitizerDriver(currentDeviceMap.["Wacom I2C Digitizer"], 20967, 15725)
+        :> IDigitizerDriver
 
 /// Holds an instance of a physical button driver
 let PhysicalButtons =
@@ -93,6 +93,7 @@ let PhysicalButtons =
     | Device.RM2 -> new PhysicalButtonDriver(currentDeviceMap.["30370000.snvs:snvs-powerkey"])
 
 // /// Holds an instance of a touchscreen driver
+// /// (currently this is disabled as it's broken and yielding runtime exceptions)
 //let Touchscreen =
 //    match CurrentDevice with
 //    | Device.RM1 -> new HardwareTouchscreenDriver(currentDeviceMap.["cyttsp5_mt"], 767, 1023, 32, false)
@@ -104,4 +105,5 @@ let Performance = HardwarePerformanceMonitor() :> IPerformanceMonitor
 // /// Holds an instance of a power supply monitor for USB power
 //let UsbPower = new HardwarePowerSupplyMonitor("/sys/class/power_supply/imx_usb_charger");
 
+// /// Disabled as I've been testing on an rM2, and haven't been able to connect a keyboard.
 //let Keyboard = new HardwareKeyboardDriver("TODO") :> IKeyboardDriver
