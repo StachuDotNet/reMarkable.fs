@@ -112,6 +112,28 @@ let main _argv =
     ReMarkable.Touchscreen.Pressed.Add (printfn "Pressed: %A")
     ReMarkable.Touchscreen.Pressed.Add (printfn "Released: %A")
     
+    ReMarkable.Digitizer_PleaseReadCommentAtDefinition.StylusUpdate.Add(fun z ->
+        printfn "%A" z.NormalizedPosition
+        ReMarkable.Display.Framebuffer.SetPixel {| Color = Color.Black; X = z.NormalizedPosition.X |> int; Y = z.NormalizedPosition.Y |> int |}
+        
+        let normalizedPosition = z.NormalizedPosition
+        let x, y = normalizedPosition.X - 1f |> int, normalizedPosition.Y - 1f |> int
+        let width = 3
+        let height = 3
+        
+        let buffer = new Image<Rgb24>(width, height)
+        buffer.Mutate(fun z -> z.Clear Color.Black |> ignore)
+        
+        ReMarkable.Display.DrawAndRefresh
+            { Image = buffer
+              SrcArea = Rectangle(0, 0, width, height)
+              DestPoint = Point(x, y)
+              
+              RefreshArea = None
+              WaveformMode = None
+              DisplayTemp = None
+              UpdateMode = Some UpdateMode.Full }
+    )
     
     
 //    let font = Fonts.SegoeUi.CreateFont(100f)

@@ -17,7 +17,7 @@ type StylusTool =
 
 /// Possible event types the digitizer can raise
 type DigitizerEventType =
-    /// Used as markers to separate events; events may be separated in time or in space, such as with the multitouch protocol
+    /// Used to separate events by time
     | Syn = 0us
     
     /// Used to describe state changes of keyboards, buttons, or other key-like devices
@@ -36,12 +36,6 @@ type DigitizerEventKeyCode =
 
     /// Reports that the stylus has pressed the screen
     | Touch = 330us
-
-    /// Reports a press of the first stylus button
-    | Stylus = 331us
-
-    /// Reports a press of the second stylus button
-    | Stylus2 = 332us
 
 type DigitizerEventAbsCode =
     /// Reports the X position of the stylus
@@ -62,6 +56,26 @@ type DigitizerEventAbsCode =
     /// Reports the tilt of the stylus in the Y direction
     | AbsTiltY = 27us
 
+type TouchscreenCalibration =
+    { Kx1: float32; Kx2: float32; Kx3: float32
+      Ky1: float32; Ky2: float32; Ky3: float32 }
+module TouchscreenCalibration =
+    let Default =
+        { Kx1 = 1f
+          Kx2 = 0f
+          Kx3 = -0.5f
+          Ky1 = 0f
+          Ky2 = 1f
+          Ky3 = -0.5f }
+    
+    let ReMarkableMarker =
+      { Kx1 = 0.0002023094f
+        Kx2 = 0.08924796f
+        Kx3 = -0.86863464f
+        Ky1 = -0.08942877f
+        Ky2 = -0.00000043777243f
+        Ky3 = 1870.3854f }
+
 /// Represents a stylus' complete immediate state
 type StylusState(tool: StylusTool option, position: Point, pressure: int, distance: int, tilt: Point) =
     /// The proximity of the stylus tool to the digitizer.
@@ -76,11 +90,31 @@ type StylusState(tool: StylusTool option, position: Point, pressure: int, distan
     /// The pressure of the stylus tool 
     member _.Pressure = pressure
 
-    /// The tilt of the stylus tool from -9000 (horizontal one direction) to 9000 (horizontal the opposing direction) 
+    /// The tilt of the stylus tool
+    /// Ranges from -9000 to 9000
     member _.Tilt = tilt
 
     /// The tool currently employed by the stylus 
     member _.Tool = tool
+    
+    member this.NormalizedPosition =
+        let calibration = TouchscreenCalibration.ReMarkableMarker
+        let x =
+            calibration.Kx1 * (float32 this.Position.X) +
+            calibration.Kx2 * (float32 this.Position.Y) +
+            calibration.Kx3 +
+            0.5f
+            
+        let y =
+            calibration.Ky1 * (float32 this.Position.X) +
+            calibration.Ky2 * (float32 this.Position.Y) +
+            calibration.Ky3 +
+            0.5f
+        
+        // ... but then we need this for some reason :) (if portrait)
+        let x, y = x, 1870f - y
+        
+        PointF(x, y)
 
     override _.ToString() =
         $"{nameof(tool)}: {tool}, {nameof(position)}: {position}, {nameof(pressure)}: {pressure}, {nameof(distance)}: {distance}, {nameof(tilt)}: {tilt}"
@@ -137,7 +171,7 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
     /// tilt value accumulated for event dispatch
     let mutable currentTilt: Point = Point.Empty
 
-    /// tool value accumulated for event dispatch
+    /// What tool are we currently working with?
     let mutable currentTool: StylusTool option = None
 
     let mutable stylusState: StylusState option = None
@@ -194,22 +228,16 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
                     | ButtonState.Pressed -> Some StylusTool.Eraser
                     | _ ->  None
                 toolChanged.Trigger currentTool
-            | DigitizerEventKeyCode.Touch ->
-                () // Stylus touch input unreliable, and data is redundant because of ABS_PRESSURE (??)
-            | DigitizerEventKeyCode.Stylus
-            | DigitizerEventKeyCode.Stylus2 ->
-                match state with
-                | ButtonState.Pressed -> pressed.Trigger key
-                | _ ->                   released.Trigger key
-            | _ -> raise <| ArgumentOutOfRangeException(nameof(key), key, key.GetType().Name)
+            | DigitizerEventKeyCode.Touch -> ()
+            | _ -> raise <| ArgumentOutOfRangeException(nameof key, key, key.GetType().Name)
         
         | DigitizerEventType.Abs ->
             let eventCode: DigitizerEventAbsCode = data.Code |> LanguagePrimitives.EnumOfValue 
 
+            // x = 
+            
             match eventCode with
-            | DigitizerEventAbsCode.AbsX ->
-                printfn "X: %i" data.Value
-                currentPosition.X <- data.Value
+            | DigitizerEventAbsCode.AbsX ->        currentPosition.X <- data.Value
             | DigitizerEventAbsCode.AbsY ->        currentPosition.Y <- data.Value
             | DigitizerEventAbsCode.AbsPressure -> currentPressure <- data.Value
             | DigitizerEventAbsCode.AbsDistance -> currentDistance <- data.Value
@@ -218,3 +246,9 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
             | _ -> raise <| ArgumentOutOfRangeException(nameof(eventCode), eventCode, eventCode.GetType().Name)
         
         | _ -> raise <| ArgumentOutOfRangeException(nameof(eventType), eventType, eventType.GetType().Name)
+
+
+// todo: create abstraction over the tilts & pressure to capture general _classes_ of such.
+// e.g. "pressure: not touching, light, medium, heavy"
+// e.g. "tiltX: hard left, slightly left, none, slightly right, right"
+// note: within this module, we can just include the mappings of value->generalization, and allow consumer to utilize if interestedz

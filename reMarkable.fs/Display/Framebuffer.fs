@@ -68,7 +68,11 @@ type HardwareFramebuffer(devicePath: string, width: int, height: int) =
             tempRect.Intersect(visibleBounds)
             tempRect, tempRect.Location
             
-
+        
+        member this.Read(area: Rectangle): Image<Rgb24> =
+            let area = (this :> IFramebuffer).ConstrainRectangle(area)
+            Image.Load<Rgb24>(deviceStream, Rgb565.Rgb565FramebufferDecoder(width, area))
+            
         member this.SetPixel (data: {| X: int; Y: int; Color: Color |}): unit =
             deviceStream.Seek(Rgb565.PointToOffset(width, data.X, data.Y) |> int64, SeekOrigin.Begin)
                 |> ignore
@@ -76,11 +80,6 @@ type HardwareFramebuffer(devicePath: string, width: int, height: int) =
             let rgb = data.Color.ToPixel<Rgb24>()
             
             deviceStream.Write(BitConverter.GetBytes(Rgb565.Pack(rgb.R, rgb.G, rgb.B)), 0, 2)
-            
-        
-        member this.Read(area: Rectangle): Image<Rgb24> =
-            let area = (this :> IFramebuffer).ConstrainRectangle(area)
-            Image.Load<Rgb24>(deviceStream, Rgb565.Rgb565FramebufferDecoder(width, area))
 
         /// Writes an image to the framebuffer
         member this.Write<'TPixel when 'TPixel :> IPixel<'TPixel>>(image: Image<'TPixel>,

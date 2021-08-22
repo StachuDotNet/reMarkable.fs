@@ -38,7 +38,8 @@
     <Compile Include="Display\HardwareDisplayDriver.fs" />
     <Compile Include="Display\RM2ShimDisplayDriver.fs" />
     <Compile Include="Performance.fs" />
-    <Compile Include="Keyboard.fs" />
+    <Compile Include="Keyboard\KeyboardKeys.fs" />
+    <Compile Include="Keyboard\Keyboard.fs" />
     <Compile Include="PowerSupply.fs" />
     <Compile Include="Wireless.fs" />
     <Compile Include="ReMarkable.fs" />

@@ -90,6 +90,8 @@ type RM2ShimDisplayDriver() =
             data.QuantBit <- 0
             //data.AltData <- null
        
+            printfn $"refreshing; ({data.UpdateRegion.X}, {data.UpdateRegion.Y})"
+            
             let retCode = Driver.Ioctl(handle :> SafeHandle, IoctlDisplayCommand.SendUpdate, &data)
             
             if retCode = -1 then
