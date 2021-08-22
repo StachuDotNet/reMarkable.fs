@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run on rM maybe" type="DotNetPublishAndUpload" factoryName="Publish to custom server">
-    <riderPublish runtime="linux-arm" server_id="e1da0f58-f5a3-4019-a603-45e2ea015ade" target_framework="net5.0" uuid_high="-3750569320842311820" uuid_low="-7245763270670098892" />
-    <method v="2">
-      <option name="Build" default="false" projectName="reMarkable.fs.Demo" projectPath="$PROJECT_DIR$/reMarkable.fs.Demo/reMarkable.fs.Demo.fsproj" />
-    </method>
-  </configuration>
-</component>

@@ -1,4 +1,5 @@
-﻿module reMarkable.fs.ReMarkable
+﻿[<RequireQualifiedAccess>]
+module reMarkable.fs.ReMarkable
 
 open System
 open System.IO
@@ -79,8 +80,7 @@ let PowerSupply =
 let Wireless = HardwareWirelessMonitor()
 
 /// Holds an instance of a digitizer driver
-/// Warning: this is currently a bit broken - namely, the coordinates are off
-let Digitizer_PleaseReadCommentAtDefinition =
+let Digitizer =
     match CurrentDevice with
     | Device.RM1
     | Device.RM2 ->

@@ -93,7 +93,7 @@ type HardwareFramebuffer(devicePath: string, width: int, height: int) =
             //let srcArea, destPoint = (this :> IFramebuffer).ConstrainRectangleToPoint(srcArea, destPoint)
             //srcArea.Location <- Point(srcArea.Location.X + destPoint.X - x, srcArea.Location.Y + destPoint.Y - y)
 
-            printfn "Area , Point: %A, %A" srcArea destPoint
+            //printfn "Area , Point: %A, %A" srcArea destPoint
             
             let encoder = makeEncoder width srcArea destPoint
             

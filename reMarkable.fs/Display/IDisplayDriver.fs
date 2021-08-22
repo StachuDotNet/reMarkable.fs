@@ -27,41 +27,41 @@ type UpdateScheme =
     | QueueAndMerge = 2
 
 type WaveformMode = 
-    // /// Screen goes to white (clears)
-    // Init = 0x0,
-    //
-    // /// Basically A2 (so partial refresh shouldn't be possible here)
-    // Glr16 = 0x4,
-    //
-    // /// Official -- and enables Regal D Processing
-    // Gld16 = 0x5,
-    //
-    // /// [Direct Update] Grey->white/grey->black  -- remarkable uses this for drawing
-    // Du = 0x1,
-    //
-    // /// High fidelity (flashing)
-    // Gc16 = 0x2,
-    //
-    // /// Medium fidelity  -- remarkable uses this for UI
-    // Gc16Fast = 0x3,
-    //
-    // /// Medium fidelity from white transition
-    // Gl16Fast = 0x6,
-    //
-    // /// Medium fidelity 4 level of gray direct update
-    // Du4 = 0x7,
-    //
-    // /// Ghost compensation waveform
-    // Reagl = 0x8,
-    //
-    // /// Ghost compensation waveform with dithering
-    // Reagld = 0x9,
-    //
-    // /// 2-bit from white transition
-    // Gl4 = 0xA,
-    //
-    // /// High fidelity for black transition
-    // Gl16Inv = 0xB,
+    /// Screen goes to white (clears)
+    | Init = 0x0u
+    
+    /// Basically A2 (so partial refresh shouldn't be possible here)
+    | Glr16 = 0x4u
+    
+    /// Official -- and enables Regal D Processing
+    | Gld16 = 0x5u
+    
+    /// [Direct Update] Grey->white/grey->black  -- remarkable uses this for drawing
+    | Du = 0x1u
+
+    /// High fidelity (flashing)
+    | Gc16 = 0x2u
+
+    /// Medium fidelity  -- remarkable uses this for UI
+    | Gc16Fast = 0x3u
+    
+    /// Medium fidelity from white transition
+    | Gl16Fast = 0x6u
+    
+    /// Medium fidelity 4 level of gray direct update
+    | Du4 = 0x7u
+    
+    /// Ghost compensation waveform
+    | Reagl = 0x8u
+    
+    /// Ghost compensation waveform with dithering
+    | Reagld = 0x9u
+    
+    /// 2-bit from white transition
+    | Gl4 = 0xAu
+    
+    /// High fidelity for black transition
+    | Gl16Inv = 0xBu
 
     /// Official
     | Auto = 257u

@@ -4,16 +4,12 @@ open System.Reflection
 open System.Threading
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
-open SixLabors.Fonts
 open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.Processing
 open reMarkable.fs.UI
 open reMarkable.fs.Digitizer
 open reMarkable.fs
 open reMarkable.fs.Display
-open reMarkable.fs.UI.Util
-
-let displayDriver = ReMarkable.Display
 
 let reportOnPerformance() =
     printfn "NumberOfCores: %A" ReMarkable.Performance.NumberOfCores
@@ -27,6 +23,7 @@ let reportOnPerformance() =
     
 let drawBeans() =
     let img: Image<Rgb24> = Image.Load(Path.Combine(Path.GetDirectoryName (Assembly.GetExecutingAssembly().Location), "blackPepper.jpeg"))
+    let width, height = 144, 144
     
     for x in 0 .. 2 .. 13 do
         for y in 0 .. 2 .. 17 do
@@ -35,10 +32,10 @@ let drawBeans() =
             
             ReMarkable.Display.DrawAndRefresh
                 { Image = img
-                  SrcArea = Rectangle(0, 0, 144, 144)
+                  SrcArea = Rectangle(0, 0, width, height)
                   DestPoint = Point(destX, destY)
                   
-                  RefreshArea = Rectangle(destX, destY, 144, 144) |> Some
+                  RefreshArea = Rectangle(destX, destY, width, height) |> Some
                   WaveformMode = None
                   DisplayTemp = None
                   UpdateMode = Some UpdateMode.Partial }
@@ -50,6 +47,7 @@ let drawGiantRectangle() =
     let height = ReMarkable.Display.Height - (y * 2)
     
     let buffer = new Image<Rgb24>(width, height)
+    buffer.Mutate(fun z -> z.Clear Color.LightGray |> ignore)
     
     ReMarkable.Display.DrawAndRefresh
         { Image = buffer
@@ -62,7 +60,6 @@ let drawGiantRectangle() =
           UpdateMode = Some UpdateMode.Full }
 
 let drawIcon() =
-    
     let glyphs = SegoeMdl2Glyphs.SegoeMdl2.Force()
     let icon = glyphs.GetIcon(64, SegoeMdl2Glyphs.Glyphs.Warning)
     
@@ -73,8 +70,7 @@ let drawIcon() =
         |> ignore
     
     let buffer = new Image<Rgb24>(ReMarkable.Display.Width, ReMarkable.Display.Height)
-    buffer.Mutate(fun z ->
-                               z.Clear(Color.White) |> ignore)
+    buffer.Mutate(fun z -> z.Clear(Color.White) |> ignore)
     buffer.Mutate draw
     ReMarkable.Display.DrawAndRefresh
         { Image = buffer
@@ -90,7 +86,7 @@ let startDigitizerTracker() =
     let mutable prevState: StylusState option = None
     let mutable lastUpdated = DateTime.Now
 
-    ReMarkable.Digitizer_PleaseReadCommentAtDefinition.StylusUpdate.Add(fun state ->
+    ReMarkable.Digitizer.StylusUpdate.Add(fun state ->
         match prevState with
         | Some prev ->
             let wasNotPressingBefore = prev.Pressure < 10
@@ -112,27 +108,31 @@ let main _argv =
     ReMarkable.Touchscreen.Pressed.Add (printfn "Pressed: %A")
     ReMarkable.Touchscreen.Pressed.Add (printfn "Released: %A")
     
-    ReMarkable.Digitizer_PleaseReadCommentAtDefinition.StylusUpdate.Add(fun z ->
-        printfn "%A" z.NormalizedPosition
-        ReMarkable.Display.Framebuffer.SetPixel {| Color = Color.Black; X = z.NormalizedPosition.X |> int; Y = z.NormalizedPosition.Y |> int |}
-        
-        let normalizedPosition = z.NormalizedPosition
-        let x, y = normalizedPosition.X - 1f |> int, normalizedPosition.Y - 1f |> int
-        let width = 3
-        let height = 3
-        
-        let buffer = new Image<Rgb24>(width, height)
-        buffer.Mutate(fun z -> z.Clear Color.Black |> ignore)
-        
-        ReMarkable.Display.DrawAndRefresh
-            { Image = buffer
-              SrcArea = Rectangle(0, 0, width, height)
-              DestPoint = Point(x, y)
-              
-              RefreshArea = None
-              WaveformMode = None
-              DisplayTemp = None
-              UpdateMode = Some UpdateMode.Full }
+    drawGiantRectangle()
+    
+    
+    ReMarkable.Digitizer.StylusUpdate.Add(fun z ->
+        if z.Distance = 0 then
+            let normalizedPosition = z.NormalizedPosition
+            let x, y = normalizedPosition.X - 1f |> int, 1872f - normalizedPosition.Y + 1f |> int
+            let width = 3
+            let height = 3
+            
+            let buffer = new Image<Rgb24>(width, height)
+            buffer.Mutate(fun z -> z.Fill Color.Black |> ignore)
+            
+            //printfn "x, y, width, height"
+            //ReMarkable.Display.Framebuffer.SetPixel {| Color = Color.Black; X = x; Y = y |}
+            
+            ReMarkable.Display.DrawAndRefresh
+                { Image = buffer
+                  SrcArea = Rectangle(0, 0, width, height)
+                  DestPoint = Point(x, y)
+                  
+                  RefreshArea = Rectangle(x, y, width, height) |> Some
+                  WaveformMode = Some WaveformMode.Du
+                  DisplayTemp = None
+                  UpdateMode = Some UpdateMode.Partial }
     )
     
     
