@@ -50,18 +50,9 @@ type IPerformanceMonitor =
     abstract member GetProcessorTime: processor:int * core:int -> float32
     
 
-/// Contains data associated with an instantaneous CPU measurement
-/// 
-/// <param name="total">The total processor time for this sample</param>
-/// <param name="idle">The idle processor time for this sample</param>
-type CpuMeasurement(total: int64, idle: int64) =
-    /// The idle processor time for this sample
-    member _.Idle = idle
-
-    /// The total processor time for this sample
-    member _.Total = total
 
  /// Contains data related to the statistics of a network adapter
+
 type NetDeviceInfo =
     { RxBytes: int64 
       RxCompressed: int64 
@@ -108,7 +99,7 @@ type PerformanceMeasurement() =
 
         dM / dT.TotalSeconds
     
-let getNetworkMeasurements(): Dictionary<string, NetDeviceInfo> =
+let private getNetworkMeasurements(): Dictionary<string, NetDeviceInfo> =
     let result = Dictionary<string, NetDeviceInfo>()
 
     use sr = new StreamReader("/proc/net/dev")
@@ -149,8 +140,20 @@ let getNetworkMeasurements(): Dictionary<string, NetDeviceInfo> =
 
             result.Add(adapterName, info)
     result
-    
-let getCpuMeasurements(): Dictionary<string, CpuMeasurement> =
+
+
+/// Contains data associated with an instantaneous CPU measurement
+/// 
+/// <param name="total">The total processor time for this sample</param>
+/// <param name="idle">The idle processor time for this sample</param>
+type CpuMeasurement(total: int64, idle: int64) = // todo: maybe a record?
+    /// The idle processor time for this sample
+    member _.Idle = idle
+
+    /// The total processor time for this sample
+    member _.Total = total
+
+let private getCpuMeasurements(): Dictionary<string, CpuMeasurement> =
      let result = Dictionary<string, CpuMeasurement>()
 
      use sr = new StreamReader("/proc/stat")
@@ -173,7 +176,7 @@ let getCpuMeasurements(): Dictionary<string, CpuMeasurement> =
 
      result
 
-let getMemoryMeasurements():  Dictionary<string, int64> =
+let private getMemoryMeasurements():  Dictionary<string, int64> =
      let result = Dictionary<string, int64>()
 
      use sr = new StreamReader("/proc/meminfo")
@@ -194,7 +197,7 @@ let getMemoryMeasurements():  Dictionary<string, int64> =
 
      result
  
- /// Provides a set of methods to profile hardware performance metrics
+/// Provides a set of methods to profile hardware performance metrics
 type HardwarePerformanceMonitor() =
     /// Contains the instantaneous CPU time-based measurements
     let globalCpuMeasurements = Dictionary<string, PerformanceMeasurement>()
@@ -214,37 +217,37 @@ type HardwarePerformanceMonitor() =
             globalNetworkMeasurements.Add($"rx-{keyValuePair.Key}", PerformanceMeasurement())
         
     interface IPerformanceMonitor with
-        member this.NumberOfCores = globalCpuMeasurements.Count - 1
-        member this.NumberOfProcessors = 1
-        member this.TotalMemory = globalMemoryMeasurements.["MemTotal"]
-        member this.TotalSwap = globalMemoryMeasurements.["SwapTotal"]
+        member _.NumberOfCores = globalCpuMeasurements.Count - 1
+        member _.NumberOfProcessors = 1
+        member _.TotalMemory = globalMemoryMeasurements.["MemTotal"]
+        member _.TotalSwap = globalMemoryMeasurements.["SwapTotal"]
         
-        member this.GetFreeMemory() =
+        member _.GetFreeMemory() =
             let measurements = getMemoryMeasurements()
             measurements.["MemAvailable"]
 
-        member this.GetFreeSwap() =
+        member _.GetFreeSwap() =
             let measurements = getMemoryMeasurements()
             measurements.["SwapFree"]
         
-        member this.GetNetworkAdapters() = (getNetworkMeasurements()).Keys |> Seq.toArray
-        member this.GetNetworkRxSpeed(adapter) =
+        member _.GetNetworkAdapters () = (getNetworkMeasurements()).Keys |> Seq.toArray
+        member _.GetNetworkRxSpeed adapter =
             let nowBytes = (getNetworkMeasurements()).[adapter].RxBytes |> double
             let measurement = globalNetworkMeasurements.[$"rx-{adapter}"].PushMeasurementPerSecond nowBytes
             int64 measurement
             
-        member this.GetNetworkRxTotal(adapter) =
+        member _.GetNetworkRxTotal adapter =
             (getNetworkMeasurements()).[adapter].RxBytes
             
-        member this.GetNetworkTxSpeed(adapter) =
+        member _.GetNetworkTxSpeed(adapter) =
             let nowBytes = (getNetworkMeasurements()).[adapter].TxBytes |> double
             let measurement = globalNetworkMeasurements.[$"tx-{adapter}"].PushMeasurementPerSecond(nowBytes)
             int64 measurement
             
-        member this.GetNetworkTxTotal(adapter) =
+        member _.GetNetworkTxTotal adapter =
             (getNetworkMeasurements()).[adapter].TxBytes
         
-        member this.GetProcessorTime() =
+        member _.GetProcessorTime() =
             let cpuMeasurements = getCpuMeasurements()
             let cpuTotal = cpuMeasurements.["cpu"]
 
@@ -253,7 +256,7 @@ type HardwarePerformanceMonitor() =
 
             float32 ((double 1) - idle / total)
             
-        member this.GetProcessorTime(processor, core) =
+        member _.GetProcessorTime(processor, core) =
             if (processor <> 0) then
                 raise <| ArgumentException(nameof processor)
 

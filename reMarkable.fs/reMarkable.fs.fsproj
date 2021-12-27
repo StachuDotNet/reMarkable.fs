@@ -23,8 +23,6 @@
   <ItemGroup>
     <Compile Include="Util\ResourceHelpers.fs" />
     <Compile Include="Util\UnixExceptions.fs" />
-    <Compile Include="Util\BufferExtensions.fs" />
-    <Compile Include="Util\StreamWatcher.fs" />
     <Compile Include="Util\UnixInputDriver.fs" />
     <Compile Include="Util\UnixFileMode.fs" />
     <Compile Include="Util\Stream.fs" />

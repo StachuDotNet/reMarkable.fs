@@ -73,7 +73,7 @@ type HardwareFramebuffer(devicePath: string, width: int, height: int) =
             let area = (this :> IFramebuffer).ConstrainRectangle(area)
             Image.Load<Rgb24>(deviceStream, Rgb565.Rgb565FramebufferDecoder(width, area))
             
-        member this.SetPixel (data: {| X: int; Y: int; Color: Color |}): unit =
+        member _.SetPixel (data: {| X: int; Y: int; Color: Color |}): unit =
             deviceStream.Seek(Rgb565.PointToOffset(width, data.X, data.Y) |> int64, SeekOrigin.Begin)
                 |> ignore
                 

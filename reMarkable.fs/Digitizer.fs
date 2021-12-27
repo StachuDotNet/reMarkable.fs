@@ -251,4 +251,4 @@ type HardwareDigitizerDriver(devicePath: string, width: int, height: int) =
 // todo: create abstraction over the tilts & pressure to capture general _classes_ of such.
 // e.g. "pressure: not touching, light, medium, heavy"
 // e.g. "tiltX: hard left, slightly left, none, slightly right, right"
-// note: within this module, we can just include the mappings of value->generalization, and allow consumer to utilize if interestedz
+// note: within this module, we can just include the mappings of value->generalization, and allow consumer to utilize if interested
